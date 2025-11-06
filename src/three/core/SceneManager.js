@@ -1,6 +1,6 @@
 /**
  * SceneManager - Core Three.js scene management utilities
- * 
+ *
  * This file serves as a placeholder for future core scene management functionality
  * that may be extracted from the ThreeScene component for better reusability.
  */
