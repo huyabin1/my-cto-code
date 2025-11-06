@@ -134,7 +134,7 @@ export default {
     }),
     ...mapState('cad', {
       layers: (state) => state.layers,
-      cadOpacity: (state) => state.opacity,
+      cadOpacity: (state) => state.overlayOpacity,
       importStatus: (state) => state.importStatus,
       importError: (state) => state.importError,
       lastImportedFile: (state) => state.lastImportedFile,
@@ -187,7 +187,7 @@ export default {
         return this.cadOpacity;
       },
       set(value) {
-        this.setOpacity(value);
+        this.setOverlayOpacity(value);
       },
     },
     selectedUnitModel: {
@@ -229,7 +229,7 @@ export default {
       'startDxfImport',
       'completeDxfImport',
       'failDxfImport',
-      'setOpacity',
+      'setOverlayOpacity',
       'setSelectedUnit',
       'setLayerVisibility',
     ]),
