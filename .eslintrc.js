@@ -32,12 +32,7 @@ module.exports = {
     'import/no-extraneous-dependencies': [
       'error',
       {
-        devDependencies: [
-          '**/tests/**',
-          '**/*.config.js',
-          'babel.config.js',
-          'jest.config.js',
-        ],
+        devDependencies: ['**/tests/**', '**/*.config.js', 'babel.config.js', 'jest.config.js'],
       },
     ],
   },

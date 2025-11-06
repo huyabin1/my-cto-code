@@ -5,6 +5,7 @@
 <script>
 import * as THREE from 'three';
 import { OrbitControls } from 'three-stdlib';
+import WallFactory from '@/three/factory/WallFactory';
 
 export default {
   name: 'ThreeScene',
@@ -77,6 +78,95 @@ export default {
       this.controls.enableZoom = true;
       this.controls.enablePan = true;
       this.controls.enableRotate = true;
+
+      // Add example walls using WallFactory
+      this.addExampleWalls();
+    },
+
+    addExampleWalls() {
+      // Create a simple room layout with different wall types
+      const walls = [
+        // Concrete walls (main structure)
+        {
+          start: new THREE.Vector2(-5, -5),
+          end: new THREE.Vector2(5, -5),
+          height: 2.8,
+          thickness: 0.2,
+          material: 'concrete',
+        },
+        {
+          start: new THREE.Vector2(5, -5),
+          end: new THREE.Vector2(5, 5),
+          height: 2.8,
+          thickness: 0.2,
+          material: 'concrete',
+        },
+        {
+          start: new THREE.Vector2(5, 5),
+          end: new THREE.Vector2(-5, 5),
+          height: 2.8,
+          thickness: 0.2,
+          material: 'concrete',
+        },
+        {
+          start: new THREE.Vector2(-5, 5),
+          end: new THREE.Vector2(-5, -5),
+          height: 2.8,
+          thickness: 0.2,
+          material: 'concrete',
+        },
+        // Wood wall (interior partition)
+        {
+          start: new THREE.Vector2(0, -5),
+          end: new THREE.Vector2(0, 0),
+          height: 2.8,
+          thickness: 0.15,
+          material: 'wood',
+        },
+        // Glass wall (modern partition)
+        {
+          start: new THREE.Vector2(0, 0),
+          end: new THREE.Vector2(0, 5),
+          height: 2.8,
+          thickness: 0.1,
+          material: 'glass',
+        },
+        // Custom colored wall
+        {
+          start: new THREE.Vector2(-5, 0),
+          end: new THREE.Vector2(0, 0),
+          height: 2.8,
+          thickness: 0.2,
+          material: 'concrete',
+          color: 0xff6b6b, // Red accent wall
+        },
+      ];
+
+      walls.forEach((wallConfig) => {
+        try {
+          const wall = WallFactory.create(wallConfig);
+          this.scene.add(wall);
+        } catch (error) {
+          console.error('Error creating wall:', error);
+        }
+      });
+
+      // Add a grid helper for better visualization
+      const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xcccccc);
+      this.scene.add(gridHelper);
+
+      // Add a ground plane
+      const groundGeometry = new THREE.PlaneGeometry(20, 20);
+      const groundMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf0f0f0,
+        roughness: 0.8,
+        metalness: 0.2,
+      });
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = 0;
+      ground.receiveShadow = true;
+      this.scene.add(ground);
     },
 
     animate() {
