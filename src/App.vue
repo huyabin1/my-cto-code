@@ -1,16 +1,74 @@
 <template>
   <div id="app">
     <section class="editor-surface">
-      <div id="three-scene-mount" class="three-scene" aria-label="Three.js scene mount">
-        Three.js Scene Placeholder
-      </div>
+      <ThreeScene ref="threeScene" class="three-scene" />
     </section>
   </div>
 </template>
 
 <script>
+import * as THREE from 'three';
+import ThreeScene from './components/editor/ThreeScene.vue';
+
 export default {
   name: 'App',
+  components: {
+    ThreeScene,
+  },
+  mounted() {
+    // Example of accessing Three.js objects after component is mounted
+    this.$nextTick(() => {
+      this.logThreeObjects();
+    });
+  },
+  methods: {
+    logThreeObjects() {
+      if (this.$refs.threeScene) {
+        const scene = this.$refs.threeScene.getScene();
+        const camera = this.$refs.threeScene.getCamera();
+        const renderer = this.$refs.threeScene.getRenderer();
+
+        if (scene) {
+          console.log('Scene accessible:', scene);
+          // Add a sample cube to demonstrate scene usage
+          this.addSampleCube(scene);
+        }
+
+        if (camera) {
+          console.log('Camera accessible:', camera);
+        }
+
+        if (renderer) {
+          console.log('Renderer accessible:', renderer);
+        }
+      }
+    },
+
+    addSampleCube(scene) {
+      // Add a sample cube to demonstrate the scene is working
+      const geometry = new THREE.BoxGeometry(5, 5, 5);
+      const material = new THREE.MeshPhongMaterial({
+        color: 0x00ff00,
+        shininess: 100,
+      });
+      const cube = new THREE.Mesh(geometry, material);
+      cube.position.set(0, 2.5, 0);
+      cube.castShadow = true;
+      cube.receiveShadow = true;
+      scene.add(cube);
+
+      // Add a ground plane
+      const planeGeometry = new THREE.PlaneGeometry(50, 50);
+      const planeMaterial = new THREE.MeshPhongMaterial({
+        color: 0x808080,
+        side: THREE.DoubleSide,
+      });
+      const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      plane.rotation.x = -Math.PI / 2;
+      plane.receiveShadow = true;
+      scene.add(plane);
+    },
+  },
 };
 </script>
 
@@ -45,12 +103,5 @@ body,
 .three-scene {
   width: 100%;
   height: 100%;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 </style>
