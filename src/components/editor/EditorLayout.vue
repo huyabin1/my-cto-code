@@ -118,6 +118,7 @@
 
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
+import { parseDxfArrayBuffer } from '@/utils/dxf';
 import ThreeScene from './ThreeScene.vue';
 import PropertyPanel from './PropertyPanel.vue';
 
@@ -232,17 +233,19 @@ export default {
       'setOpacity',
       'setSelectedUnit',
       'setLayerVisibility',
+      'setCadData',
     ]),
     triggerDxfSelect() {
       if (this.$refs.dxfInput) {
         this.$refs.dxfInput.click();
       }
     },
-    onDxfFileChange(event) {
+    async onDxfFileChange(event) {
       const { files } = event.target;
       if (!files || !files.length) {
         return;
       }
+
       const [file] = files;
       const extension = file.name.split('.').pop().toLowerCase();
       if (extension !== 'dxf') {
@@ -252,8 +255,44 @@ export default {
       }
 
       this.startDxfImport({ fileName: file.name });
-      this.completeDxfImport({ fileName: file.name });
-      this.resetFileInput(event.target);
+
+      try {
+        const arrayBuffer = await this.readFileAsArrayBuffer(file);
+        const result = parseDxfArrayBuffer(arrayBuffer);
+
+        if (!result.layers.length) {
+          this.setCadData({
+            layers: [],
+            layerGeometries: {},
+            detectedUnit: result.detectedUnit,
+          });
+          throw new Error('未从 DXF 中解析到可用几何');
+        }
+
+        this.setCadData(result);
+        this.setSelectedUnit('auto');
+        this.completeDxfImport({ fileName: file.name });
+      } catch (error) {
+        const message = error && error.message ? error.message : '解析失败';
+        this.failDxfImport({ fileName: file.name, error: message });
+      } finally {
+        this.resetFileInput(event.target);
+      }
+    },
+    readFileAsArrayBuffer(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve(e.target.result);
+        };
+        reader.onerror = () => {
+          reject(new Error('DXF 文件读取失败'));
+        };
+        reader.onabort = () => {
+          reject(new Error('DXF 文件读取被中断'));
+        };
+        reader.readAsArrayBuffer(file);
+      });
     },
     resetFileInput(target) {
       if (target) {
