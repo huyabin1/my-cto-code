@@ -9,7 +9,7 @@ A factory class for creating parameterized walls in Three.js scenes.
 ### Usage
 
 ```javascript
-import WallFactory from '@/three/factory/WallFactory.js';
+import WallFactory from '@/three/factory';
 
 // Create a wall with default parameters
 const wall = WallFactory.create({

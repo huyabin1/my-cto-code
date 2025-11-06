@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import WallFactory from '@/three/factory/WallFactory.js';
+// eslint-disable-next-line import/extensions
+import WallFactory from '@/three/factory';
 
 // Mock THREE.MathUtils.generateUUID for consistent testing
 const mockUUIDs = [];

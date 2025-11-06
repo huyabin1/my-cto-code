@@ -5,7 +5,8 @@
 <script>
 import * as THREE from 'three';
 import { OrbitControls } from 'three-stdlib';
-import WallFactory from '@/three/factory/WallFactory';
+// eslint-disable-next-line import/extensions
+import WallFactory from '@/three/factory';
 
 export default {
   name: 'ThreeScene',
@@ -147,7 +148,11 @@ export default {
           const wall = WallFactory.create(wallConfig);
           this.scene.add(wall);
         } catch (error) {
-          console.error('Error creating wall:', error);
+          // Silently handle wall creation errors in production
+          if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.error('Error creating wall:', error);
+          }
         }
       });
 

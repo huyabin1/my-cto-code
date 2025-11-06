@@ -1,5 +1,6 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import VueCompositionApi from '@vue/composition-api';
+// eslint-disable-next-line import/order
 import ThreeScene from '@/components/editor/ThreeScene.vue';
 
 // Mock Three.js to avoid WebGL context issues in tests
@@ -49,14 +50,17 @@ jest.mock('three-stdlib', () => ({
   })),
 }));
 
+// Import mocked modules after jest.mock declarations
+// eslint-disable-next-line import/first
+import * as THREE from 'three';
+// eslint-disable-next-line import/first
+import { OrbitControls } from 'three-stdlib';
+
 // Mock requestAnimationFrame and cancelAnimationFrame
 global.requestAnimationFrame = jest.fn((cb) => setTimeout(cb, 16));
 global.cancelAnimationFrame = jest.fn();
 
 // Mock window.addEventListener and removeEventListener
-const originalAddEventListener = window.addEventListener;
-const originalRemoveEventListener = window.removeEventListener;
-
 window.addEventListener = jest.fn();
 window.removeEventListener = jest.fn();
 
@@ -137,8 +141,7 @@ describe('ThreeScene.vue', () => {
   });
 
   it('configures renderer with correct settings', () => {
-    const { WebGLRenderer } = require('three');
-    expect(WebGLRenderer).toHaveBeenCalledWith({
+    expect(THREE.WebGLRenderer).toHaveBeenCalledWith({
       antialias: true,
       alpha: true,
     });
@@ -148,23 +151,20 @@ describe('ThreeScene.vue', () => {
   });
 
   it('configures camera with correct position and aspect ratio', () => {
-    const { PerspectiveCamera } = require('three');
-    expect(PerspectiveCamera).toHaveBeenCalledWith(75, 800 / 600, 0.1, 1000);
+    expect(THREE.PerspectiveCamera).toHaveBeenCalledWith(75, 800 / 600, 0.1, 1000);
     expect(wrapper.vm.camera.position.set).toHaveBeenCalledWith(20, 20, 20);
     expect(wrapper.vm.camera.lookAt).toHaveBeenCalledWith(0, 0, 0);
   });
 
   it('configures OrbitControls with damping enabled', () => {
-    const { OrbitControls } = require('three-stdlib');
     expect(OrbitControls).toHaveBeenCalled();
     expect(wrapper.vm.controls.enableDamping).toBe(true);
     expect(wrapper.vm.controls.dampingFactor).toBe(0.05);
   });
 
   it('adds lights to the scene', () => {
-    const { AmbientLight, DirectionalLight } = require('three');
-    expect(AmbientLight).toHaveBeenCalled();
-    expect(DirectionalLight).toHaveBeenCalled();
+    expect(THREE.AmbientLight).toHaveBeenCalled();
+    expect(THREE.DirectionalLight).toHaveBeenCalled();
     expect(wrapper.vm.scene.add).toHaveBeenCalledTimes(3); // ambient + directional + shadow light
   });
 });

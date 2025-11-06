@@ -52,7 +52,7 @@ class WallFactory {
     const geometry = new THREE.BoxGeometry(length, height, thickness);
 
     // 设置UV (1m重复比)
-    this._setGeometryUVs(geometry, length, height, thickness);
+    this.setGeometryUVs(geometry, length, height, thickness);
 
     // 创建材质
     const materialConfig = WallFactory.MATERIAL_PRESETS[material];
@@ -112,6 +112,7 @@ class WallFactory {
     const newMesh = newWall.children[0];
 
     // 更新userData
+    // eslint-disable-next-line no-param-reassign
     wall.userData = newWall.userData;
 
     // 添加新的网格
@@ -136,13 +137,13 @@ class WallFactory {
    * 设置几何体UV
    * @private
    */
-  static _setGeometryUVs(geometry, length, height, thickness) {
+  static setGeometryUVs(geometry, length, height, thickness) {
     const uvAttribute = geometry.attributes.uv;
     const uvArray = uvAttribute.array;
 
     // 为每个面设置UV，实现1m重复
     // BoxGeometry 有 24 个顶点，分为 6 个面，每个面 4 个顶点
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 24; i += 1) {
       const faceIndex = Math.floor(i / 4);
       const vertexIndex = i % 4;
 
@@ -162,6 +163,9 @@ class WallFactory {
         case 5: // 后面 (Z-)
           uvArray[i * 2] = vertexIndex === 0 || vertexIndex === 3 ? 0 : length;
           uvArray[i * 2 + 1] = vertexIndex === 0 || vertexIndex === 1 ? 0 : height;
+          break;
+        default:
+          // No UV mapping for unexpected face index
           break;
       }
     }
