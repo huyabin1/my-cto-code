@@ -1,8 +1,8 @@
 const DEFAULT_LAYERS = [
-  { id: 'layer-structure', name: '结构', visible: true },
-  { id: 'layer-furniture', name: '家具', visible: true },
-  { id: 'layer-annotation', name: '标注', visible: false },
-  { id: 'layer-electrical', name: '强弱电', visible: true },
+  { id: 'layer-structure', name: '结构', visible: true, color: '#2563eb' },
+  { id: 'layer-furniture', name: '家具', visible: true, color: '#f97316' },
+  { id: 'layer-annotation', name: '标注', visible: false, color: '#10b981' },
+  { id: 'layer-electrical', name: '强弱电', visible: true, color: '#ec4899' },
 ];
 
 const UNIT_OPTIONS = [
@@ -17,7 +17,8 @@ export default {
   namespaced: true,
   state: () => ({
     layers: DEFAULT_LAYERS.map((layer) => ({ ...layer })),
-    opacity: 0.75,
+    overlayOpacity: 0.75,
+    overlayPolylines: [],
     importStatus: 'idle',
     importError: null,
     lastImportedFile: '',
@@ -27,6 +28,20 @@ export default {
   getters: {
     visibleLayerIds(state) {
       return state.layers.filter((layer) => layer.visible).map((layer) => layer.id);
+    },
+    layerVisibilityMap(state) {
+      return state.layers.reduce((acc, layer) => {
+        acc[layer.id] = layer.visible;
+        return acc;
+      }, {});
+    },
+    layerStyleMap(state) {
+      return state.layers.reduce((acc, layer) => {
+        acc[layer.id] = {
+          color: layer.color,
+        };
+        return acc;
+      }, {});
     },
   },
   mutations: {
@@ -43,8 +58,11 @@ export default {
         layer.visible = visibilitySet.has(layer.id);
       });
     },
-    SET_OPACITY(state, opacity) {
-      state.opacity = opacity;
+    SET_OVERLAY_OPACITY(state, opacity) {
+      state.overlayOpacity = typeof opacity === 'number' ? opacity : state.overlayOpacity;
+    },
+    SET_OVERLAY_POLYLINES(state, polylines) {
+      state.overlayPolylines = Array.isArray(polylines) ? polylines : [];
     },
     SET_IMPORT_STATUS(state, status) {
       state.importStatus = status;
@@ -67,8 +85,11 @@ export default {
     setLayerVisibility({ commit }, visibleIds) {
       commit('SET_MULTIPLE_LAYER_VISIBILITY', visibleIds);
     },
-    setOpacity({ commit }, opacity) {
-      commit('SET_OPACITY', opacity);
+    setOverlayOpacity({ commit }, opacity) {
+      commit('SET_OVERLAY_OPACITY', opacity);
+    },
+    setOverlayPolylines({ commit }, polylines) {
+      commit('SET_OVERLAY_POLYLINES', polylines);
     },
     startDxfImport({ commit }, { fileName }) {
       commit('SET_IMPORT_STATUS', 'processing');
