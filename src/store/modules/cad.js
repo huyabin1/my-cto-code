@@ -23,10 +23,21 @@ export default {
     lastImportedFile: '',
     unitOptions: UNIT_OPTIONS,
     selectedUnit: UNIT_OPTIONS[0].value,
+    detectedUnit: 'auto',
+    dxfLayers: [],
+    dxfEntities: [],
+    dxfExtent: null,
+    userUnitOverride: null,
   }),
   getters: {
     visibleLayerIds(state) {
       return state.layers.filter((layer) => layer.visible).map((layer) => layer.id);
+    },
+    effectiveUnit(state) {
+      return state.userUnitOverride || state.detectedUnit;
+    },
+    visibleDxfLayers(state) {
+      return state.dxfLayers.filter((layer) => layer.visible);
     },
   },
   mutations: {
@@ -57,6 +68,34 @@ export default {
     },
     SET_SELECTED_UNIT(state, unit) {
       state.selectedUnit = unit;
+    },
+    SET_DETECTED_UNIT(state, unit) {
+      state.detectedUnit = unit;
+    },
+    SET_USER_UNIT_OVERRIDE(state, unit) {
+      state.userUnitOverride = unit;
+    },
+    SET_DXF_LAYERS(state, layers) {
+      state.dxfLayers = layers;
+    },
+    SET_DXF_ENTITIES(state, entities) {
+      state.dxfEntities = entities;
+    },
+    SET_DXF_EXTENT(state, extent) {
+      state.dxfExtent = extent;
+    },
+    UPDATE_DXF_LAYER_VISIBILITY(state, { layerName, visible }) {
+      const layer = state.dxfLayers.find((l) => l.name === layerName);
+      if (layer) {
+        layer.visible = visible;
+      }
+    },
+    CLEAR_DXF_DATA(state) {
+      state.dxfLayers = [];
+      state.dxfEntities = [];
+      state.dxfExtent = null;
+      state.detectedUnit = 'auto';
+      state.userUnitOverride = null;
     },
   },
   actions: {
@@ -90,6 +129,48 @@ export default {
     },
     setSelectedUnit({ commit }, unit) {
       commit('SET_SELECTED_UNIT', unit);
+    },
+    async parseDxfFile({ commit }, { file, loader }) {
+      commit('SET_IMPORT_STATUS', 'processing');
+      commit('SET_IMPORT_ERROR', null);
+      commit('SET_LAST_IMPORTED_FILE', file.name || '');
+
+      try {
+        const result = await loader.load(file);
+
+        commit('SET_DXF_LAYERS', result.layers || []);
+        commit('SET_DXF_ENTITIES', result.entities || []);
+        commit('SET_DXF_EXTENT', result.extent);
+
+        const { detectUnit } = await import('@/utils/unitDetection');
+        const detectedUnit = detectUnit(result.extent);
+        commit('SET_DETECTED_UNIT', detectedUnit);
+
+        commit('SET_IMPORT_STATUS', 'success');
+
+        return result;
+      } catch (error) {
+        commit('SET_IMPORT_STATUS', 'error');
+        commit('SET_IMPORT_ERROR', error.message || '解析失败');
+        throw error;
+      }
+    },
+    setUserUnitOverride({ commit }, unit) {
+      commit('SET_USER_UNIT_OVERRIDE', unit);
+    },
+    toggleDxfLayerVisibility({ commit, state }, layerName) {
+      const layer = state.dxfLayers.find((l) => l.name === layerName);
+      if (layer) {
+        commit('UPDATE_DXF_LAYER_VISIBILITY', {
+          layerName,
+          visible: !layer.visible,
+        });
+      }
+    },
+    clearDxfData({ commit }) {
+      commit('CLEAR_DXF_DATA');
+      commit('SET_IMPORT_STATUS', 'idle');
+      commit('SET_IMPORT_ERROR', null);
     },
   },
 };
