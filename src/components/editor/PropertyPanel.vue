@@ -26,6 +26,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex';
+import { UpdateActiveSelectionCommand } from '@/three/command';
 
 export default {
   name: 'PropertyPanel',
@@ -36,7 +37,7 @@ export default {
         return this.activeSelection.material;
       },
       set(value) {
-        this.setActiveMaterial(value);
+        this.updateMaterialWithCommand(value);
       },
     },
     selectedColor: {
@@ -44,12 +45,41 @@ export default {
         return this.activeSelection.color;
       },
       set(value) {
-        this.setActiveColor(value);
+        this.updateColorWithCommand(value);
       },
     },
   },
   methods: {
     ...mapActions('editor', ['setActiveMaterial', 'setActiveColor']),
+
+    // 使用命令系统更新材质
+    updateMaterialWithCommand(value) {
+      // 获取ThreeScene组件的toolController
+      const { threeScene } = this.$parent.$refs;
+      if (threeScene && threeScene.getToolController) {
+        const toolController = threeScene.getToolController();
+        if (toolController) {
+          toolController.updateActiveSelection('material', value);
+        }
+      } else {
+        // 回退到直接更新
+        this.setActiveMaterial(value);
+      }
+    },
+
+    // 使用命令系统更新颜色
+    updateColorWithCommand(value) {
+      const { threeScene } = this.$parent.$refs;
+      if (threeScene && threeScene.getToolController) {
+        const toolController = threeScene.getToolController();
+        if (toolController) {
+          toolController.updateActiveSelection('color', value);
+        }
+      } else {
+        // 回退到直接更新
+        this.setActiveColor(value);
+      }
+    },
   },
 };
 </script>
