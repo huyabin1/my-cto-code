@@ -95,6 +95,8 @@
         <PropertyPanel />
 
         <UndoRedoPanel />
+
+        <ProjectPanel />
       </div>
     </aside>
 
@@ -111,6 +113,7 @@ import PropertyPanel from './PropertyPanel';
 import SnappingPanel from './SnappingPanel';
 import MeasurementPanel from './MeasurementPanel';
 import UndoRedoPanel from './UndoRedoPanel';
+import ProjectPanel from './ProjectPanel';
 
 export default {
   name: 'EditorLayout',
@@ -120,6 +123,7 @@ export default {
     SnappingPanel,
     MeasurementPanel,
     UndoRedoPanel,
+    ProjectPanel,
   },
   computed: {
     ...mapState('editor', {
