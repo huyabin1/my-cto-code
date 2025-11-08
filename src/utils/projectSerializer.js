@@ -23,7 +23,7 @@ function generateId() {
 function isVersionCompatible(projectVersion) {
   const currentParts = PROJECT_VERSION.split('.').map(Number);
   const projectParts = projectVersion.split('.').map(Number);
-  
+
   // Major version must match
   return currentParts[0] === projectParts[0];
 }
@@ -35,9 +35,9 @@ function isVersionCompatible(projectVersion) {
  */
 function extractGeometryParameters(geometry) {
   if (!geometry) return {};
-  
+
   const params = {};
-  
+
   if (geometry.type === 'BoxGeometry') {
     if (geometry.attributes && geometry.attributes.position) {
       const box = new THREE.Box3().setFromAttribute(geometry.attributes.position);
@@ -52,7 +52,7 @@ function extractGeometryParameters(geometry) {
       params.depth = 1;
     }
   }
-  
+
   return params;
 }
 
@@ -105,7 +105,7 @@ function serializeMeasurement(measurement) {
  */
 function serializeEntities(scene) {
   const entities = [];
-  
+
   if (!scene || !scene.children) {
     return entities;
   }
@@ -185,7 +185,9 @@ export function deserializeProject(projectData) {
   // Version compatibility check
   if (!isVersionCompatible(projectData.version)) {
     // eslint-disable-next-line no-console
-    console.warn(`Project version ${projectData.version} may not be fully compatible with current version ${PROJECT_VERSION}`);
+    console.warn(
+      `Project version ${projectData.version} may not be fully compatible with current version ${PROJECT_VERSION}`
+    );
   }
 
   const stateUpdates = {
@@ -208,18 +210,18 @@ export function deserializeProject(projectData) {
  * @returns {Object} Migrated project data
  */
 export function migrateProject(projectData, fromVersion, toVersion = PROJECT_VERSION) {
-  let migratedData = { ...projectData };
-  
+  const migratedData = { ...projectData };
+
   // Add migration logic here as versions evolve
   // Example: if (fromVersion === '0.9.0' && toVersion === '1.0.0') { ... }
-  
+
   migratedData.version = toVersion;
   migratedData.metadata = {
     ...migratedData.metadata,
     updatedAt: new Date().toISOString(),
     migratedFrom: fromVersion,
   };
-  
+
   return migratedData;
 }
 
