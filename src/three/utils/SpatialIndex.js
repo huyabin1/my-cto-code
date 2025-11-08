@@ -49,7 +49,7 @@ class SpatialIndex {
       point.x - radius,
       point.z - radius,
       point.x + radius,
-      point.z + radius,
+      point.z + radius
     );
 
     cellCoords.forEach(({ x, y }) => {
@@ -87,7 +87,7 @@ class SpatialIndex {
       position.x - halfExtent,
       position.z - halfExtent,
       position.x + halfExtent,
-      position.z + halfExtent,
+      position.z + halfExtent
     );
 
     cellCoords.forEach(({ x, y }) => {
@@ -113,7 +113,7 @@ class SpatialIndex {
       position.x - halfExtent,
       position.z - halfExtent,
       position.x + halfExtent,
-      position.z + halfExtent,
+      position.z + halfExtent
     );
 
     cellCoords.forEach(({ x, y }) => {

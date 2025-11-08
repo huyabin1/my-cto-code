@@ -28,6 +28,15 @@ export default {
     activeTool: null, // 'distance' | 'area' | 'angle' | null
     measurements: [],
     measurementResultsVisible: false,
+    commandStackInfo: {
+      canUndo: false,
+      canRedo: false,
+      undoCount: 0,
+      redoCount: 0,
+      maxStackSize: 50,
+      undoHistory: [],
+      redoHistory: [],
+    },
   }),
   getters: {
     activeMaterialDefinition(state) {
@@ -67,6 +76,9 @@ export default {
     },
     SET_MEASUREMENT_RESULTS_VISIBLE(state, visible) {
       state.measurementResultsVisible = visible;
+    },
+    SET_COMMAND_STACK_INFO(state, info) {
+      state.commandStackInfo = { ...info };
     },
   },
   actions: {
@@ -109,6 +121,9 @@ export default {
     },
     setMeasurementResultsVisible({ commit }, visible) {
       commit('SET_MEASUREMENT_RESULTS_VISIBLE', visible);
+    },
+    setCommandStackInfo({ commit }, info) {
+      commit('SET_COMMAND_STACK_INFO', info);
     },
   },
 };

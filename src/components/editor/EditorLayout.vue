@@ -93,11 +93,13 @@
         <MeasurementPanel />
 
         <PropertyPanel />
+
+        <UndoRedoPanel />
       </div>
     </aside>
 
     <main class="editor-canvas">
-      <ThreeScene class="canvas-scene" />
+      <ThreeScene ref="threeScene" class="canvas-scene" />
     </main>
   </div>
 </template>
@@ -108,6 +110,7 @@ import ThreeScene from './ThreeScene';
 import PropertyPanel from './PropertyPanel';
 import SnappingPanel from './SnappingPanel';
 import MeasurementPanel from './MeasurementPanel';
+import UndoRedoPanel from './UndoRedoPanel';
 
 export default {
   name: 'EditorLayout',
@@ -116,6 +119,7 @@ export default {
     ThreeScene,
     SnappingPanel,
     MeasurementPanel,
+    UndoRedoPanel,
   },
   computed: {
     ...mapState('editor', {
@@ -212,6 +216,11 @@ export default {
       }
       return 'info';
     },
+  },
+  provide() {
+    return {
+      store: this.$store,
+    };
   },
   methods: {
     ...mapActions('editor', ['setDrawWallTool', 'setSnapping']),

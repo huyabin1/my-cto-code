@@ -90,30 +90,25 @@ class QuadTree {
         { x: x + hw, y, width: hw, height: hh },
         this.maxObjects,
         this.maxDepth,
-        this.depth + 1,
+        this.depth + 1
       ),
-      new QuadTree(
-        { x, y, width: hw, height: hh },
-        this.maxObjects,
-        this.maxDepth,
-        this.depth + 1,
-      ),
+      new QuadTree({ x, y, width: hw, height: hh }, this.maxObjects, this.maxDepth, this.depth + 1),
       new QuadTree(
         { x, y: y + hh, width: hw, height: hh },
         this.maxObjects,
         this.maxDepth,
-        this.depth + 1,
+        this.depth + 1
       ),
       new QuadTree(
         { x: x + hw, y: y + hh, width: hw, height: hh },
         this.maxObjects,
         this.maxDepth,
-        this.depth + 1,
+        this.depth + 1
       ),
     ];
 
     // 重新分配对象
-    const objects = this.objects;
+    const { objects } = this;
     this.objects = [];
 
     objects.forEach((obj) => {
@@ -135,10 +130,10 @@ class QuadTree {
     const { x, y, width, height } = this.bounds;
 
     return (
-      bounds.x >= x
-      && bounds.x + bounds.width <= x + width
-      && bounds.y >= y
-      && bounds.y + bounds.height <= y + height
+      bounds.x >= x &&
+      bounds.x + bounds.width <= x + width &&
+      bounds.y >= y &&
+      bounds.y + bounds.height <= y + height
     );
   }
 
@@ -148,10 +143,10 @@ class QuadTree {
   boundsIntersect(searchBounds) {
     const { x, y, width, height } = this.bounds;
     return !(
-      searchBounds.x + searchBounds.width < x
-      || searchBounds.x > x + width
-      || searchBounds.y + searchBounds.height < y
-      || searchBounds.y > y + height
+      searchBounds.x + searchBounds.width < x ||
+      searchBounds.x > x + width ||
+      searchBounds.y + searchBounds.height < y ||
+      searchBounds.y > y + height
     );
   }
 

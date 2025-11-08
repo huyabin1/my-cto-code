@@ -7,9 +7,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three-stdlib';
 // eslint-disable-next-line import/extensions
 import WallFactory from '@/three/factory';
+import ToolController from '@/three/tool/ToolController';
 
 export default {
   name: 'ThreeScene',
+  inject: ['store'],
   data() {
     return {
       scene: null,
@@ -17,11 +19,15 @@ export default {
       renderer: null,
       controls: null,
       animationId: null,
+      toolController: null,
     };
   },
   mounted() {
     this.initThreeScene();
     this.animate();
+
+    // Initialize tool controller
+    this.initToolController();
 
     // Handle window resize
     window.addEventListener('resize', this.handleResize);
@@ -82,6 +88,10 @@ export default {
 
       // Add example walls using WallFactory
       this.addExampleWalls();
+    },
+
+    initToolController() {
+      this.toolController = new ToolController(this.scene, this.camera, this.renderer, this.store);
     },
 
     addExampleWalls() {
@@ -210,6 +220,11 @@ export default {
         cancelAnimationFrame(this.animationId);
       }
 
+      // Dispose tool controller
+      if (this.toolController) {
+        this.toolController.destroy();
+      }
+
       // Dispose controls
       if (this.controls) {
         this.controls.dispose();
@@ -231,6 +246,7 @@ export default {
       this.renderer = null;
       this.controls = null;
       this.animationId = null;
+      this.toolController = null;
     },
 
     // Exposed methods for parent components
@@ -244,6 +260,10 @@ export default {
 
     getRenderer() {
       return this.renderer;
+    },
+
+    getToolController() {
+      return this.toolController;
     },
   },
 };

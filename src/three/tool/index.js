@@ -5,3 +5,5 @@ export {
   AreaMeasurement,
   AngleMeasurement,
 } from './MeasurementTool';
+
+export { default as ToolController } from './ToolController';
