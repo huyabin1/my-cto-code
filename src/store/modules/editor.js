@@ -45,6 +45,7 @@ export default {
       isDirty: false,
     },
     lastAutoSave: null,
+    entities: [],
   }),
   getters: {
     activeMaterialDefinition(state) {
@@ -93,6 +94,9 @@ export default {
     },
     SET_LAST_AUTO_SAVE(state, timestamp) {
       state.lastAutoSave = timestamp;
+    },
+    SET_ENTITIES(state, entities) {
+      state.entities = entities;
     },
   },
   actions: {
