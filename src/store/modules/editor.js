@@ -37,6 +37,15 @@ export default {
       undoHistory: [],
       redoHistory: [],
     },
+    projectInfo: {
+      name: 'Untitled Project',
+      createdAt: null,
+      lastSaved: null,
+      lastLoaded: null,
+      isDirty: false,
+    },
+    lastAutoSave: null,
+    entities: [],
   }),
   getters: {
     activeMaterialDefinition(state) {
@@ -79,6 +88,15 @@ export default {
     },
     SET_COMMAND_STACK_INFO(state, info) {
       state.commandStackInfo = { ...info };
+    },
+    SET_PROJECT_INFO(state, info) {
+      state.projectInfo = { ...info };
+    },
+    SET_LAST_AUTO_SAVE(state, timestamp) {
+      state.lastAutoSave = timestamp;
+    },
+    SET_ENTITIES(state, entities) {
+      state.entities = entities;
     },
   },
   actions: {
@@ -124,6 +142,12 @@ export default {
     },
     setCommandStackInfo({ commit }, info) {
       commit('SET_COMMAND_STACK_INFO', info);
+    },
+    setProjectInfo({ commit }, info) {
+      commit('SET_PROJECT_INFO', info);
+    },
+    setLastAutoSave({ commit }, timestamp) {
+      commit('SET_LAST_AUTO_SAVE', timestamp);
     },
   },
 };

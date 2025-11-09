@@ -58,6 +58,9 @@ export default {
     SET_SELECTED_UNIT(state, unit) {
       state.selectedUnit = unit;
     },
+    SET_LAYERS(state, layers) {
+      state.layers = layers;
+    },
   },
   actions: {
     toggleLayerVisibility({ commit, getters }, id) {

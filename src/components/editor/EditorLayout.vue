@@ -95,6 +95,8 @@
         <PropertyPanel />
 
         <UndoRedoPanel />
+
+        <ProjectPanel />
       </div>
     </aside>
 
@@ -105,12 +107,14 @@
 </template>
 
 <script>
+import * as THREE from 'three';
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ThreeScene from './ThreeScene';
 import PropertyPanel from './PropertyPanel';
 import SnappingPanel from './SnappingPanel';
 import MeasurementPanel from './MeasurementPanel';
 import UndoRedoPanel from './UndoRedoPanel';
+import ProjectPanel from './ProjectPanel';
 
 export default {
   name: 'EditorLayout',
@@ -120,6 +124,7 @@ export default {
     SnappingPanel,
     MeasurementPanel,
     UndoRedoPanel,
+    ProjectPanel,
   },
   computed: {
     ...mapState('editor', {
@@ -237,7 +242,7 @@ export default {
         this.$refs.dxfInput.click();
       }
     },
-    onDxfFileChange(event) {
+    async onDxfFileChange(event) {
       const { files } = event.target;
       if (!files || !files.length) {
         return;
@@ -251,13 +256,106 @@ export default {
       }
 
       this.startDxfImport({ fileName: file.name });
-      this.completeDxfImport({ fileName: file.name });
+
+      try {
+        // Read file content
+        const dxfContent = await this.readFileAsText(file);
+
+        // Import DxfLoader dynamically
+        const { default: DxfLoader } = await import('@/three/loader/DxfLoader');
+
+        // Parse DXF with progress callback
+        const result = await DxfLoader.parseAsync(dxfContent, {
+          targetUnit: this.selectedUnit,
+          visibleLayers: this.visibleLayerIds,
+          onProgress: (progress, message) => {
+            // Update import status with progress
+            this.$store.commit(
+              'cad/SET_IMPORT_ERROR',
+              `${message} (${Math.round(progress * 100)}%)`
+            );
+          },
+        });
+
+        // Update store with parsed data
+        await this.processDxfResult(result);
+
+        this.completeDxfImport({ fileName: file.name });
+      } catch (error) {
+        this.failDxfImport({ fileName: file.name, error: error.message });
+      }
+
       this.resetFileInput(event.target);
     },
     resetFileInput(input) {
       if (input) {
         // eslint-disable-next-line no-param-reassign
         input.value = '';
+      }
+    },
+    readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(new Error('文件读取失败'));
+        reader.readAsText(file);
+      });
+    },
+    async processDxfResult(result) {
+      // Update layers in store
+      if (result.layers && result.layers.length > 0) {
+        // Merge with existing layers, preserving visibility settings
+        const existingLayers = this.layers;
+        const mergedLayers = result.layers.map((newLayer) => {
+          const existing = existingLayers.find((l) => l.id === newLayer.id);
+          return existing ? { ...existing, name: newLayer.name } : newLayer;
+        });
+
+        // Add any existing layers that weren't in the DXF
+        existingLayers.forEach((existingLayer) => {
+          if (!mergedLayers.find((l) => l.id === existingLayer.id)) {
+            mergedLayers.push(existingLayer);
+          }
+        });
+
+        this.$store.commit('cad/SET_LAYERS', mergedLayers);
+      }
+
+      // Add Three.js objects to the scene
+      if (result.threeObjects && result.threeObjects.length > 0) {
+        const { threeScene } = this.$refs;
+        if (threeScene && threeScene.getScene) {
+          const scene = threeScene.getScene();
+
+          // Group DXF objects by layer for better organization
+          const layerGroups = {};
+          result.threeObjects.forEach((obj) => {
+            const layerId = obj.userData.layer || '0';
+            if (!layerGroups[layerId]) {
+              layerGroups[layerId] = new THREE.Group();
+              layerGroups[layerId].name = `dxf-layer-${layerId}`;
+              layerGroups[layerId].userData = { layerId };
+            }
+            layerGroups[layerId].add(obj);
+          });
+
+          // Add layer groups to scene
+          Object.values(layerGroups).forEach((group) => {
+            scene.add(group);
+          });
+        }
+      }
+
+      // Map entities to internal format and store them
+      if (result.entities && result.entities.length > 0) {
+        const { DxfLoader } = await import('@/three/loader/DxfLoader');
+        const internalEntities = DxfLoader.mapToInternalEntities(
+          result.entities,
+          result.conversionFactor
+        );
+
+        // Store entities for later use
+        this.$store.commit('editor/SET_ENTITIES', internalEntities);
       }
     },
   },
