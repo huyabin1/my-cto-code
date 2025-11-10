@@ -2,83 +2,107 @@
   <section class="sidebar-block property-panel">
     <header class="property-header">
       <h2>属性面板</h2>
-      <span class="property-subtitle">{{ activeSelection.name }}</span>
+      <span v-if="hasSelection" class="property-subtitle">
+        {{ selectionInfo }}
+      </span>
+      <span v-else class="property-subtitle">
+        未选中任何元素
+      </span>
     </header>
 
-    <div class="property-field">
-      <label class="field-label">墙体材料</label>
-      <el-select v-model="selectedMaterial" size="small" class="field-control">
-        <el-option
-          v-for="material in materials"
-          :key="material.value"
-          :label="material.label"
-          :value="material.value"
-        />
-      </el-select>
+    <div v-if="!hasSelection" class="no-selection">
+      <div class="no-selection-icon">
+        <i class="el-icon-mouse"></i>
+      </div>
+      <div class="no-selection-text">
+        <p>请选择一个元素以编辑其属性</p>
+      </div>
     </div>
 
-    <div class="property-field">
-      <label class="field-label">墙体颜色</label>
-      <el-color-picker v-model="selectedColor" size="small" class="field-control" />
-    </div>
+    <PropertyRenderer
+      v-else
+      :entity="activeSelection"
+      :selected-entities="selectedEntities"
+      @field-change="handleFieldChange"
+      @field-blur="handleFieldBlur"
+    />
   </section>
 </template>
 
 <script>
 import { mapState, mapActions } from 'vuex';
-import { UpdateActiveSelectionCommand } from '@/three/command';
+import PropertyRenderer from './properties/PropertyRenderer.vue';
 
 export default {
   name: 'PropertyPanel',
+  components: {
+    PropertyRenderer,
+  },
   computed: {
-    ...mapState('editor', ['materials', 'activeSelection']),
-    selectedMaterial: {
-      get() {
-        return this.activeSelection.material;
-      },
-      set(value) {
-        this.updateMaterialWithCommand(value);
-      },
+    ...mapState('editor', ['activeSelection', 'entities']),
+    
+    hasSelection() {
+      return this.activeSelection && this.activeSelection.id && this.activeSelection.id !== 'wall-default';
     },
-    selectedColor: {
-      get() {
-        return this.activeSelection.color;
-      },
-      set(value) {
-        this.updateColorWithCommand(value);
-      },
+    
+    selectedEntities() {
+      if (!this.hasSelection) return [];
+      
+      // For now, use the active selection as a single entity
+      // In the future, this could be extended to support multi-selection
+      return [this.activeSelection];
+    },
+    
+    selectionInfo() {
+      if (!this.hasSelection) return '';
+      
+      if (this.selectedEntities.length === 1) {
+        return `${this.activeSelection.name || '未命名元素'} (${this.getEntityTypeLabel(this.activeSelection.type)})`;
+      } else {
+        return `已选中 ${this.selectedEntities.length} 个元素`;
+      }
     },
   },
   methods: {
     ...mapActions('editor', ['setActiveMaterial', 'setActiveColor']),
-
-    // 使用命令系统更新材质
-    updateMaterialWithCommand(value) {
-      // 获取ThreeScene组件的toolController
-      const { threeScene } = this.$parent.$refs;
-      if (threeScene && threeScene.getToolController) {
-        const toolController = threeScene.getToolController();
-        if (toolController) {
-          toolController.updateActiveSelection('material', value);
-        }
-      } else {
-        // 回退到直接更新
-        this.setActiveMaterial(value);
-      }
+    
+    /**
+     * Get a human-readable label for entity type
+     */
+    getEntityTypeLabel(type) {
+      const typeLabels = {
+        wall: '墙体',
+        door: '门',
+        window: '窗户',
+        measurement: '测量',
+      };
+      return typeLabels[type] || type || '未知';
     },
-
-    // 使用命令系统更新颜色
-    updateColorWithCommand(value) {
-      const { threeScene } = this.$parent.$refs;
-      if (threeScene && threeScene.getToolController) {
-        const toolController = threeScene.getToolController();
-        if (toolController) {
-          toolController.updateActiveSelection('color', value);
-        }
-      } else {
-        // 回退到直接更新
-        this.setActiveColor(value);
-      }
+    
+    /**
+     * Handle field change events from PropertyRenderer
+     */
+    handleFieldChange(event) {
+      // Log field changes for debugging
+      console.log('Property field changed:', event);
+      
+      // You can add additional logic here, such as:
+      // - Analytics tracking
+      // - Custom validation
+      // - Side effects
+    },
+    
+    /**
+     * Handle field blur events from PropertyRenderer
+     */
+    handleFieldBlur(event) {
+      // Log field blur events for debugging
+      console.log('Property field blurred:', event);
+      
+      // You can add additional logic here, such as:
+      // - Auto-save triggers
+      // - Validation on blur
+      // - State synchronization
     },
   },
 };
@@ -106,20 +130,30 @@ export default {
 .property-subtitle {
   font-size: 12px;
   color: #6b7280;
+  margin-top: 4px;
 }
 
-.property-field + .property-field {
-  margin-top: 12px;
+.no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: #6b7280;
 }
 
-.field-label {
-  display: block;
-  font-size: 12px;
-  color: #4b5563;
-  margin-bottom: 6px;
+.no-selection-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
-.field-control {
-  width: 100%;
+.no-selection-text {
+  font-size: 14px;
+  line-height: 1.5;
 }
+
+// Import property renderer styles
+@import './properties/fields/_styles.scss';
 </style>
