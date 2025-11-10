@@ -46,6 +46,10 @@ export default {
     },
     lastAutoSave: null,
     entities: [],
+    viewport: {
+      viewMode: '2d', // '2d' | '3d' | 'sync'
+      layoutMode: 'single', // 'single' | 'split' | 'floating'
+    },
   }),
   getters: {
     activeMaterialDefinition(state) {
@@ -98,6 +102,12 @@ export default {
     SET_ENTITIES(state, entities) {
       state.entities = entities;
     },
+    SET_VIEW_MODE(state, mode) {
+      state.viewport.viewMode = mode;
+    },
+    SET_LAYOUT_MODE(state, mode) {
+      state.viewport.layoutMode = mode;
+    },
   },
   actions: {
     toggleDrawWallTool({ commit, state }) {
@@ -148,6 +158,12 @@ export default {
     },
     setLastAutoSave({ commit }, timestamp) {
       commit('SET_LAST_AUTO_SAVE', timestamp);
+    },
+    setViewMode({ commit }, mode) {
+      commit('SET_VIEW_MODE', mode);
+    },
+    setLayoutMode({ commit }, mode) {
+      commit('SET_LAYOUT_MODE', mode);
     },
   },
 };

@@ -8,6 +8,7 @@ import { OrbitControls } from 'three-stdlib';
 // eslint-disable-next-line import/extensions
 import WallFactory from '@/three/factory';
 import ToolController from '@/three/tool/ToolController';
+import { getSharedSceneGraph } from '@/three/core/SceneGraph';
 
 export default {
   name: 'ThreeScene',
@@ -20,10 +21,12 @@ export default {
       controls: null,
       animationId: null,
       toolController: null,
+      sceneGraph: null,
     };
   },
   mounted() {
     this.initThreeScene();
+    this.setupSceneGraph();
     this.animate();
 
     // Initialize tool controller
@@ -88,6 +91,22 @@ export default {
 
       // Add example walls using WallFactory
       this.addExampleWalls();
+    },
+
+    setupSceneGraph() {
+      this.sceneGraph = getSharedSceneGraph();
+      
+      // Add scene graph root to the scene
+      const rootGroup = this.sceneGraph.getRootGroup();
+      this.scene.add(rootGroup);
+
+      // Subscribe to scene graph changes
+      this.unsubscribe = this.sceneGraph.subscribe(this.handleSceneGraphChange);
+    },
+
+    handleSceneGraphChange(event) {
+      // React to scene graph changes if needed
+      // The root group is already in the scene, so changes are automatic
     },
 
     initToolController() {
@@ -220,6 +239,11 @@ export default {
         cancelAnimationFrame(this.animationId);
       }
 
+      // Unsubscribe from scene graph
+      if (this.unsubscribe) {
+        this.unsubscribe();
+      }
+
       // Dispose tool controller
       if (this.toolController) {
         this.toolController.destroy();
@@ -247,6 +271,7 @@ export default {
       this.controls = null;
       this.animationId = null;
       this.toolController = null;
+      this.sceneGraph = null;
     },
 
     // Exposed methods for parent components

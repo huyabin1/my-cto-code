@@ -19,6 +19,23 @@
 
         <section class="sidebar-block">
           <header class="block-header">
+            <h2>视图模式</h2>
+          </header>
+          <el-radio-group v-model="viewModeModel" size="small" class="view-mode-group">
+            <el-radio-button label="2d">平面</el-radio-button>
+            <el-radio-button label="3d">3D</el-radio-button>
+            <el-radio-button label="sync">同步</el-radio-button>
+          </el-radio-group>
+          <div v-if="viewModeModel === 'sync'" class="layout-options">
+            <el-radio-group v-model="layoutModeModel" size="mini">
+              <el-radio label="split">分屏</el-radio>
+              <el-radio label="floating">悬浮</el-radio>
+            </el-radio-group>
+          </div>
+        </section>
+
+        <section class="sidebar-block">
+          <header class="block-header">
             <h2>CAD 导入</h2>
             <el-tag v-if="importStatus !== 'idle'" :type="statusTagType" size="mini">
               {{ importStatusText }}
@@ -100,8 +117,19 @@
       </div>
     </aside>
 
-    <main class="editor-canvas">
-      <ThreeScene ref="threeScene" class="canvas-scene" />
+    <main class="editor-canvas" :class="canvasLayoutClass">
+      <ThreeScene 
+        v-if="viewModeModel === '2d' || viewModeModel === 'sync'" 
+        ref="threeScene" 
+        class="canvas-scene"
+        :class="{'split-view': viewModeModel === 'sync' && layoutModeModel === 'split'}"
+      />
+      <PreviewViewport 
+        v-if="viewModeModel === '3d' || viewModeModel === 'sync'" 
+        ref="previewViewport" 
+        class="canvas-scene preview-scene"
+        :class="previewViewportClass"
+      />
     </main>
   </div>
 </template>
@@ -110,6 +138,7 @@
 import * as THREE from 'three';
 import { mapState, mapGetters, mapActions } from 'vuex';
 import ThreeScene from './ThreeScene';
+import PreviewViewport from './viewport/PreviewViewport';
 import PropertyPanel from './PropertyPanel';
 import SnappingPanel from './SnappingPanel';
 import MeasurementPanel from './MeasurementPanel';
@@ -121,6 +150,7 @@ export default {
   components: {
     PropertyPanel,
     ThreeScene,
+    PreviewViewport,
     SnappingPanel,
     MeasurementPanel,
     UndoRedoPanel,
@@ -130,6 +160,7 @@ export default {
     ...mapState('editor', {
       drawWallToolEnabled: (state) => state.drawWallToolEnabled,
       snapping: (state) => state.snapping,
+      viewport: (state) => state.viewport,
     }),
     ...mapState('cad', {
       layers: (state) => state.layers,
@@ -197,6 +228,40 @@ export default {
         this.setSelectedUnit(value);
       },
     },
+    viewModeModel: {
+      get() {
+        return this.viewport.viewMode;
+      },
+      set(value) {
+        this.setViewMode(value);
+      },
+    },
+    layoutModeModel: {
+      get() {
+        return this.viewport.layoutMode;
+      },
+      set(value) {
+        this.setLayoutMode(value);
+      },
+    },
+    canvasLayoutClass() {
+      if (this.viewModeModel === 'sync' && this.layoutModeModel === 'split') {
+        return 'split-layout';
+      }
+      if (this.viewModeModel === 'sync' && this.layoutModeModel === 'floating') {
+        return 'floating-layout';
+      }
+      return 'single-layout';
+    },
+    previewViewportClass() {
+      if (this.viewModeModel === 'sync' && this.layoutModeModel === 'floating') {
+        return 'floating-preview';
+      }
+      if (this.viewModeModel === 'sync' && this.layoutModeModel === 'split') {
+        return 'split-view';
+      }
+      return '';
+    },
     importStatusText() {
       if (this.importStatus === 'processing') {
         return '解析中';
@@ -228,7 +293,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions('editor', ['setDrawWallTool', 'setSnapping']),
+    ...mapActions('editor', ['setDrawWallTool', 'setSnapping', 'setViewMode', 'setLayoutMode']),
     ...mapActions('cad', [
       'startDxfImport',
       'completeDxfImport',
@@ -477,5 +542,55 @@ export default {
 
 .canvas-scene {
   flex: 1;
+}
+
+.view-mode-group {
+  width: 100%;
+}
+
+.layout-options {
+  margin-top: 12px;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+/* Split layout - side by side */
+.split-layout {
+  flex-direction: row;
+  gap: 2px;
+}
+
+.split-layout .canvas-scene {
+  flex: 1;
+  min-width: 0;
+}
+
+.split-layout .split-view {
+  border-left: 2px solid #374151;
+}
+
+/* Floating layout - 3D preview floats over 2D */
+.floating-layout {
+  position: relative;
+}
+
+.floating-preview {
+  position: absolute !important;
+  top: 20px;
+  right: 20px;
+  width: 400px;
+  height: 300px;
+  border: 2px solid #374151;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  background: #2c3e50;
+}
+
+/* Single layout - just one view */
+.single-layout .canvas-scene {
+  width: 100%;
+  height: 100%;
 }
 </style>
