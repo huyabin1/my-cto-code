@@ -175,6 +175,19 @@ describe('Editor Store Module', () => {
       expect(state.activeSelection.name).toBe('墙体 A1');
     });
 
+    it('should initialize selection state with defaults', () => {
+      expect(state.selection.mode).toBe('none');
+      expect(state.selection.ids).toEqual([]);
+      expect(state.selection.primaryId).toBeNull();
+      expect(state.selection.hoveredId).toBeNull();
+      expect(state.selection.marquee).toEqual({
+        active: false,
+        start: null,
+        end: null,
+      });
+      expect(typeof state.selection.lastUpdated).toBe('number');
+    });
+
     it('should have empty entities array initially', () => {
       expect(state.entities).toEqual([]);
     });
@@ -186,6 +199,179 @@ describe('Editor Store Module', () => {
 
     it('should have null command stack initially', () => {
       expect(state.commandStack).toBeNull();
+    });
+  });
+
+  describe('Selection Mutations and Actions', () => {
+    it('should update selection state via mutation', () => {
+      store.mutations.SET_SELECTION_STATE(state, {
+        ids: ['wall-1'],
+        primaryId: 'wall-1',
+        mode: 'single',
+        lastUpdated: 123,
+      });
+
+      expect(state.selection.ids).toEqual(['wall-1']);
+      expect(state.selection.primaryId).toBe('wall-1');
+      expect(state.selection.mode).toBe('single');
+    });
+
+    it('should reset selection state via mutation', () => {
+      store.mutations.SET_SELECTION_STATE(state, {
+        ids: ['wall-1'],
+        primaryId: 'wall-1',
+        mode: 'single',
+      });
+
+      store.mutations.RESET_SELECTION_STATE(state);
+
+      expect(state.selection.ids).toEqual([]);
+      expect(state.selection.mode).toBe('none');
+    });
+
+    it('should set selection via action', async () => {
+      const commit = jest.fn();
+      const payload = await store.actions.setSelection(
+        { commit, state },
+        { ids: ['wall-1', 'wall-1'] }
+      );
+
+      expect(commit).toHaveBeenCalledWith(
+        'SET_SELECTION_STATE',
+        expect.objectContaining({
+          ids: ['wall-1'],
+          primaryId: 'wall-1',
+          mode: 'single',
+        })
+      );
+      expect(payload.ids).toEqual(['wall-1']);
+      expect(payload.mode).toBe('single');
+    });
+
+    it('should add ids to selection in add mode', async () => {
+      const commit = jest.fn();
+      const selectionState = {
+        ids: ['wall-1'],
+        primaryId: 'wall-1',
+        mode: 'single',
+        hoveredId: null,
+        marquee: { active: false, start: null, end: null },
+      };
+
+      const payload = await store.actions.setSelection(
+        { commit, state: { selection: selectionState } },
+        { ids: ['wall-2'], mode: 'add' }
+      );
+
+      expect(commit).toHaveBeenCalledWith(
+        'SET_SELECTION_STATE',
+        expect.objectContaining({
+          ids: ['wall-1', 'wall-2'],
+          mode: 'multi',
+        })
+      );
+      expect(payload.ids).toEqual(['wall-1', 'wall-2']);
+      expect(payload.mode).toBe('multi');
+    });
+
+    it('should toggle ids in toggle mode', async () => {
+      const commit = jest.fn();
+      const selectionState = {
+        ids: ['wall-1', 'wall-2'],
+        primaryId: 'wall-1',
+        mode: 'multi',
+        hoveredId: null,
+        marquee: { active: false, start: null, end: null },
+      };
+
+      const payload = await store.actions.setSelection(
+        { commit, state: { selection: selectionState } },
+        { ids: ['wall-2', 'wall-3'], mode: 'toggle' }
+      );
+
+      expect(payload.ids).toEqual(['wall-1', 'wall-3']);
+      expect(payload.mode).toBe('multi');
+      expect(commit).toHaveBeenCalledWith(
+        'SET_SELECTION_STATE',
+        expect.objectContaining({ ids: ['wall-1', 'wall-3'] })
+      );
+    });
+
+    it('should clear selection via action', async () => {
+      const commit = jest.fn();
+      await store.actions.clearSelection({ commit });
+      expect(commit).toHaveBeenCalledWith('RESET_SELECTION');
+    });
+
+    it('should update selection marquee via action', async () => {
+      const commit = jest.fn();
+      await store.actions.updateSelectionMarquee(
+        { commit },
+        {
+          active: true,
+          start: { x: 0, y: 0 },
+          end: { x: 1, y: 1 },
+        }
+      );
+
+      expect(commit).toHaveBeenCalledWith(
+        'SET_SELECTION_STATE',
+        expect.objectContaining({
+          marquee: expect.objectContaining({
+            active: true,
+            start: { x: 0, y: 0 },
+            end: { x: 1, y: 1 },
+          }),
+        })
+      );
+    });
+
+    it('should reset marquee when action called without payload', async () => {
+      const commit = jest.fn();
+      await store.actions.updateSelectionMarquee({ commit });
+      expect(commit).toHaveBeenCalledWith(
+        'SET_SELECTION_STATE',
+        expect.objectContaining({
+          marquee: expect.objectContaining({
+            active: false,
+          }),
+        })
+      );
+    });
+
+    it('should set hovered entity via action', async () => {
+      const commit = jest.fn();
+      await store.actions.setHoveredEntity({ commit }, 'wall-1');
+      expect(commit).toHaveBeenCalledWith(
+        'SET_SELECTION_STATE',
+        expect.objectContaining({ hoveredId: 'wall-1' })
+      );
+    });
+
+    it('should provide selection getters', () => {
+      state.entities.push(
+        { id: 'wall-1', type: 'wall' },
+        { id: 'wall-2', type: 'wall' }
+      );
+
+      store.mutations.SET_SELECTION_STATE(state, {
+        ids: ['wall-2'],
+        primaryId: 'wall-2',
+        mode: 'single',
+      });
+
+      const selectedEntitiesGetter = editorModule.getters.selectedEntities;
+      const primarySelectedEntityGetter = editorModule.getters.primarySelectedEntity;
+      const selectionModeGetter = editorModule.getters.selectionMode;
+
+      const selected = selectedEntitiesGetter(state);
+      expect(selected).toHaveLength(1);
+      expect(selected[0].id).toBe('wall-2');
+
+      const primary = primarySelectedEntityGetter(state, { selectedEntities: selected });
+      expect(primary.id).toBe('wall-2');
+
+      expect(selectionModeGetter(state)).toBe('single');
     });
   });
 

@@ -31,7 +31,23 @@ describe('PropertyPanel', () => {
         material: 'concrete',
         color: '#ffffff',
       },
-      entities: [],
+      entities: [
+        {
+          id: 'wall-1',
+          type: 'wall',
+          name: '墙体 A1',
+          material: 'concrete',
+          color: '#ffffff',
+        },
+      ],
+      selection: {
+        ids: ['wall-1'],
+        primaryId: 'wall-1',
+        mode: 'single',
+        hoveredId: null,
+        marquee: { active: false, start: null, end: null },
+        lastUpdated: 0,
+      },
     },
   };
 
@@ -40,10 +56,18 @@ describe('PropertyPanel', () => {
       modules: {
         editor: {
           namespaced: true,
-          state: mockState.editor,
+          state: JSON.parse(JSON.stringify(mockState.editor)),
           actions: {
             setActiveMaterial: jest.fn(),
             setActiveColor: jest.fn(),
+          },
+          getters: {
+            selectedEntities: (state) =>
+              state.selection.ids
+                .map((id) => state.entities.find((entity) => entity.id === id))
+                .filter(Boolean),
+            primarySelectedEntity: (state, getters) => getters.selectedEntities[0] || null,
+            selectionMode: (state) => state.selection.mode,
           },
         },
       },
@@ -81,8 +105,11 @@ describe('PropertyPanel', () => {
     });
 
     it('should show no selection message when no entity is selected', () => {
-      store.state.editor.activeSelection = null;
-      
+      store.state.editor.selection.ids = [];
+      store.state.editor.selection.primaryId = null;
+      store.state.editor.selection.mode = 'none';
+      store.state.editor.entities = [];
+
       wrapper = shallowMount(PropertyPanel, {
         localVue,
         store,
@@ -101,7 +128,10 @@ describe('PropertyPanel', () => {
         material: 'concrete',
         color: '#ffffff',
       };
-      
+      store.state.editor.selection.ids = [];
+      store.state.editor.selection.primaryId = null;
+      store.state.editor.selection.mode = 'none';
+
       wrapper = shallowMount(PropertyPanel, {
         localVue,
         store,
@@ -128,33 +158,56 @@ describe('PropertyPanel', () => {
       });
     });
 
-    it('should compute hasSelection correctly', () => {
+    it('should compute hasSelection correctly', async () => {
       expect(wrapper.vm.hasSelection).toBe(true);
 
-      store.state.editor.activeSelection = null;
+      store.state.editor.selection.ids = [];
+      store.state.editor.selection.primaryId = null;
+      store.state.editor.selection.mode = 'none';
+      await wrapper.vm.$nextTick();
       expect(wrapper.vm.hasSelection).toBe(false);
 
-      store.state.editor.activeSelection = { id: 'wall-default' };
-      expect(wrapper.vm.hasSelection).toBe(false);
+      store.state.editor.selection.ids = ['wall-1'];
+      store.state.editor.selection.primaryId = 'wall-1';
+      store.state.editor.selection.mode = 'single';
+      store.state.editor.entities = [
+        {
+          id: 'wall-1',
+          type: 'wall',
+          name: '墙体 A1',
+          material: 'concrete',
+          color: '#ffffff',
+        },
+      ];
+      await wrapper.vm.$nextTick();
+      expect(wrapper.vm.hasSelection).toBe(true);
     });
 
-    it('should compute selectedEntities correctly', () => {
-      expect(wrapper.vm.selectedEntities).toEqual([store.state.editor.activeSelection]);
+    it('should compute selectedEntities correctly', async () => {
+      expect(wrapper.vm.selectedEntitiesList).toEqual([store.state.editor.entities[0]]);
 
-      store.state.editor.activeSelection = null;
-      expect(wrapper.vm.selectedEntities).toEqual([]);
+      store.state.editor.selection.ids = [];
+      store.state.editor.selection.primaryId = null;
+      store.state.editor.selection.mode = 'none';
+      await wrapper.vm.$nextTick();
+      expect(wrapper.vm.selectedEntitiesList).toEqual([]);
     });
 
-    it('should compute selectionInfo correctly', () => {
+    it('should compute selectionInfo correctly', async () => {
       expect(wrapper.vm.selectionInfo).toBe('墙体 A1 (墙体)');
 
-      store.state.editor.activeSelection.name = '';
+      store.state.editor.entities[0].name = '';
+      await wrapper.vm.$nextTick();
       expect(wrapper.vm.selectionInfo).toBe('未命名元素 (墙体)');
 
-      store.state.editor.activeSelection.type = 'door';
+      store.state.editor.entities[0].type = 'door';
+      await wrapper.vm.$nextTick();
       expect(wrapper.vm.selectionInfo).toBe('未命名元素 (门)');
 
-      store.state.editor.activeSelection = null;
+      store.state.editor.selection.ids = [];
+      store.state.editor.selection.primaryId = null;
+      store.state.editor.selection.mode = 'none';
+      await wrapper.vm.$nextTick();
       expect(wrapper.vm.selectionInfo).toBe('');
     });
   });
@@ -222,8 +275,8 @@ describe('PropertyPanel', () => {
 
       const propertyRenderer = wrapper.findComponent({ name: 'PropertyRenderer' });
       
-      expect(propertyRenderer.props('entity')).toEqual(store.state.editor.activeSelection);
-      expect(propertyRenderer.props('selectedEntities')).toEqual([store.state.editor.activeSelection]);
+      expect(propertyRenderer.props('entity')).toEqual(store.state.editor.entities[0]);
+      expect(propertyRenderer.props('selectedEntities')).toEqual([store.state.editor.entities[0]]);
     });
 
     it('should handle event emissions from PropertyRenderer', () => {
@@ -234,11 +287,13 @@ describe('PropertyPanel', () => {
 
       const propertyRenderer = wrapper.findComponent({ name: 'PropertyRenderer' });
       
+      const selectedEntity = store.state.editor.entities[0];
+
       const changeEvent = {
         field: 'material',
         value: 'brick',
-        entity: store.state.editor.activeSelection,
-        entities: [store.state.editor.activeSelection],
+        entity: selectedEntity,
+        entities: [selectedEntity],
       };
 
       propertyRenderer.vm.$emit('field-change', changeEvent);
@@ -247,8 +302,8 @@ describe('PropertyPanel', () => {
       const blurEvent = {
         field: 'material',
         value: 'brick',
-        entity: store.state.editor.activeSelection,
-        entities: [store.state.editor.activeSelection],
+        entity: selectedEntity,
+        entities: [selectedEntity],
       };
 
       propertyRenderer.vm.$emit('field-blur', blurEvent);
@@ -258,12 +313,17 @@ describe('PropertyPanel', () => {
 
   describe('Edge Cases', () => {
     it('should handle entity without name', () => {
-      store.state.editor.activeSelection = {
-        id: 'wall-1',
-        type: 'wall',
-        material: 'concrete',
-        color: '#ffffff',
-      };
+      store.state.editor.entities = [
+        {
+          id: 'wall-1',
+          type: 'wall',
+          material: 'concrete',
+          color: '#ffffff',
+        },
+      ];
+      store.state.editor.selection.ids = ['wall-1'];
+      store.state.editor.selection.primaryId = 'wall-1';
+      store.state.editor.selection.mode = 'single';
 
       wrapper = shallowMount(PropertyPanel, {
         localVue,
@@ -274,12 +334,17 @@ describe('PropertyPanel', () => {
     });
 
     it('should handle entity without type', () => {
-      store.state.editor.activeSelection = {
-        id: 'entity-1',
-        name: '测试元素',
-        material: 'concrete',
-        color: '#ffffff',
-      };
+      store.state.editor.entities = [
+        {
+          id: 'entity-1',
+          name: '测试元素',
+          material: 'concrete',
+          color: '#ffffff',
+        },
+      ];
+      store.state.editor.selection.ids = ['entity-1'];
+      store.state.editor.selection.primaryId = 'entity-1';
+      store.state.editor.selection.mode = 'single';
 
       wrapper = shallowMount(PropertyPanel, {
         localVue,
@@ -291,7 +356,9 @@ describe('PropertyPanel', () => {
 
     it('should handle empty entities array', () => {
       store.state.editor.entities = [];
-      store.state.editor.activeSelection = null;
+      store.state.editor.selection.ids = [];
+      store.state.editor.selection.primaryId = null;
+      store.state.editor.selection.mode = 'none';
 
       wrapper = shallowMount(PropertyPanel, {
         localVue,
@@ -299,7 +366,7 @@ describe('PropertyPanel', () => {
       });
 
       expect(wrapper.vm.hasSelection).toBe(false);
-      expect(wrapper.vm.selectedEntities).toEqual([]);
+      expect(wrapper.vm.selectedEntitiesList).toEqual([]);
       expect(wrapper.find('.no-selection').exists()).toBe(true);
     });
   });

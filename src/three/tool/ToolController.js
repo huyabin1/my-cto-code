@@ -9,6 +9,7 @@ import {
   ToggleToolCommand,
 } from '../command';
 import WallFactory from '../factory/WallFactory';
+import { getSharedSceneGraph } from '@/three/core/SceneGraph';
 
 /**
  * ToolController - 工具控制器
@@ -29,6 +30,11 @@ class ToolController {
 
     // 命令栈
     this.commandStack = new CommandStack(50);
+    if (this.store && typeof this.store.commit === 'function') {
+      this.store.commit('editor/SET_COMMAND_STACK', this.commandStack);
+    }
+
+    this.sceneGraph = getSharedSceneGraph();
 
     // 工具状态
     this.activeTool = null;
@@ -261,7 +267,10 @@ class ToolController {
       color: this.store.state.editor.activeSelection.color,
     };
 
-    const command = new CreateWallCommand(this.scene, wallConfig);
+    const command = new CreateWallCommand(this.scene, wallConfig, {
+      store: this.store,
+      sceneGraph: this.sceneGraph,
+    });
     this.commandStack.execute(command);
 
     this.isDrawing = false;
@@ -305,7 +314,10 @@ class ToolController {
    */
   async updateWallProperty(wall, property, value) {
     const newConfig = { [property]: value };
-    const command = new UpdateWallCommand(wall, newConfig);
+    const command = new UpdateWallCommand(wall, newConfig, null, {
+      store: this.store,
+      sceneGraph: this.sceneGraph,
+    });
     return this.commandStack.execute(command);
   }
 
@@ -313,7 +325,10 @@ class ToolController {
    * 删除墙体
    */
   async deleteWall(wall) {
-    const command = new DeleteWallCommand(this.scene, wall);
+    const command = new DeleteWallCommand(this.scene, wall, {
+      store: this.store,
+      sceneGraph: this.sceneGraph,
+    });
     return this.commandStack.execute(command);
   }
 

@@ -118,9 +118,9 @@
     </aside>
 
     <main class="editor-canvas" :class="canvasLayoutClass">
-      <ThreeScene 
+      <FloorplanViewport 
         v-if="viewModeModel === '2d' || viewModeModel === 'sync'" 
-        ref="threeScene" 
+        ref="floorplanViewport" 
         class="canvas-scene"
         :class="{'split-view': viewModeModel === 'sync' && layoutModeModel === 'split'}"
       />
@@ -137,7 +137,7 @@
 <script>
 import * as THREE from 'three';
 import { mapState, mapGetters, mapActions } from 'vuex';
-import ThreeScene from './ThreeScene';
+import FloorplanViewport from './viewport/FloorplanViewport';
 import PreviewViewport from './viewport/PreviewViewport';
 import PropertyPanel from './PropertyPanel';
 import SnappingPanel from './SnappingPanel';
@@ -149,7 +149,7 @@ export default {
   name: 'EditorLayout',
   components: {
     PropertyPanel,
-    ThreeScene,
+    FloorplanViewport,
     PreviewViewport,
     SnappingPanel,
     MeasurementPanel,

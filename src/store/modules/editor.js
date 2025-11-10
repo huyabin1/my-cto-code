@@ -12,6 +12,30 @@ const DEFAULT_SELECTION = {
   color: '#ffffff',
 };
 
+const DEFAULT_SELECTION_STATE = Object.freeze({
+  mode: 'none',
+  ids: [],
+  primaryId: null,
+  hoveredId: null,
+  marquee: {
+    active: false,
+    start: null,
+    end: null,
+  },
+  lastUpdated: null,
+});
+
+function createDefaultSelectionState() {
+  return {
+    mode: DEFAULT_SELECTION_STATE.mode,
+    ids: [...DEFAULT_SELECTION_STATE.ids],
+    primaryId: DEFAULT_SELECTION_STATE.primaryId,
+    hoveredId: DEFAULT_SELECTION_STATE.hoveredId,
+    marquee: { ...DEFAULT_SELECTION_STATE.marquee },
+    lastUpdated: Date.now(),
+  };
+}
+
 export default {
   namespaced: true,
   state: () => ({
@@ -46,6 +70,7 @@ export default {
     },
     lastAutoSave: null,
     entities: [],
+    selection: createDefaultSelectionState(),
     viewport: {
       viewMode: '2d', // '2d' | '3d' | 'sync'
       layoutMode: 'single', // 'single' | 'split' | 'floating'
@@ -55,6 +80,19 @@ export default {
   getters: {
     activeMaterialDefinition(state) {
       return state.materials.find((item) => item.value === state.activeSelection.material);
+    },
+    selectedEntities(state) {
+      if (!state.selection.ids || state.selection.ids.length === 0) {
+        return [];
+      }
+      const selectionSet = new Set(state.selection.ids);
+      return state.entities.filter((entity) => selectionSet.has(entity.id));
+    },
+    primarySelectedEntity(state, getters) {
+      return getters.selectedEntities.length > 0 ? getters.selectedEntities[0] : null;
+    },
+    selectionMode(state) {
+      return state.selection.mode;
     },
   },
   mutations: {
@@ -73,8 +111,46 @@ export default {
     SET_ACTIVE_SELECTION_COLOR(state, color) {
       state.activeSelection.color = color;
     },
+    SET_SELECTION_STATE(state, selectionState) {
+      const next = {
+        ...state.selection,
+        ...selectionState,
+      };
+
+      if (selectionState.ids) {
+        next.ids = [...selectionState.ids];
+      } else {
+        next.ids = [...state.selection.ids];
+      }
+
+      const previousMarquee =
+        (state.selection && state.selection.marquee) || DEFAULT_SELECTION_STATE.marquee;
+
+      if (selectionState.marquee) {
+        next.marquee = {
+          ...previousMarquee,
+          ...selectionState.marquee,
+        };
+      } else if (selectionState.marquee === null) {
+        next.marquee = { ...DEFAULT_SELECTION_STATE.marquee };
+      } else if (!next.marquee) {
+        next.marquee = { ...previousMarquee };
+      }
+
+      if (next.marquee) {
+        next.marquee = { ...next.marquee };
+      } else {
+        next.marquee = { ...DEFAULT_SELECTION_STATE.marquee };
+      }
+
+      state.selection = next;
+    },
+    RESET_SELECTION_STATE(state) {
+      state.selection = createDefaultSelectionState();
+    },
     RESET_SELECTION(state) {
       state.activeSelection = { ...DEFAULT_SELECTION };
+      state.selection = createDefaultSelectionState();
     },
     SET_ACTIVE_TOOL(state, toolName) {
       state.activeTool = toolName;
@@ -155,6 +231,91 @@ export default {
     },
     resetSelection({ commit }) {
       commit('RESET_SELECTION');
+    },
+    setSelection(
+      { commit, state },
+      { ids = [], mode = 'replace', marquee = null, hoveredId } = {}
+    ) {
+      const normalizedIds = Array.isArray(ids)
+        ? ids.filter((id) => id !== null && id !== undefined)
+        : [];
+      const uniqueIds = Array.from(new Set(normalizedIds));
+      const currentIds = state.selection?.ids ? [...state.selection.ids] : [];
+      let finalIds;
+
+      switch (mode) {
+        case 'add':
+          finalIds = Array.from(new Set([...currentIds, ...uniqueIds]));
+          break;
+        case 'toggle':
+          finalIds = [...currentIds];
+          uniqueIds.forEach((id) => {
+            const index = finalIds.indexOf(id);
+            if (index > -1) {
+              finalIds.splice(index, 1);
+            } else {
+              finalIds.push(id);
+            }
+          });
+          break;
+        case 'remove':
+          finalIds = currentIds.filter((id) => !uniqueIds.includes(id));
+          break;
+        default:
+          finalIds = uniqueIds;
+          break;
+      }
+
+      const selectionMode =
+        finalIds.length === 0 ? 'none' : finalIds.length === 1 ? 'single' : 'multi';
+
+      const payload = {
+        ids: finalIds,
+        primaryId: finalIds[0] || null,
+        mode: selectionMode,
+        marquee: marquee
+          ? {
+              active: true,
+              start: marquee.start ? { x: marquee.start.x, y: marquee.start.y } : null,
+              end: marquee.end ? { x: marquee.end.x, y: marquee.end.y } : null,
+            }
+          : { ...DEFAULT_SELECTION_STATE.marquee },
+        lastUpdated: Date.now(),
+      };
+
+      if (hoveredId !== undefined) {
+        payload.hoveredId = hoveredId;
+      }
+
+      commit('SET_SELECTION_STATE', payload);
+      return payload;
+    },
+    clearSelection({ commit }) {
+      commit('RESET_SELECTION');
+    },
+    updateSelectionMarquee({ commit }, marquee) {
+      const payload =
+        marquee && marquee.active
+          ? {
+              marquee: {
+                active: true,
+                start: marquee.start ? { x: marquee.start.x, y: marquee.start.y } : null,
+                end: marquee.end ? { x: marquee.end.x, y: marquee.end.y } : null,
+              },
+              lastUpdated: Date.now(),
+            }
+          : {
+              marquee: { ...DEFAULT_SELECTION_STATE.marquee },
+              lastUpdated: Date.now(),
+            };
+      commit('SET_SELECTION_STATE', payload);
+      return payload;
+    },
+    setHoveredEntity({ commit }, hoveredId = null) {
+      commit('SET_SELECTION_STATE', {
+        hoveredId,
+        lastUpdated: Date.now(),
+      });
     },
     setActiveTool({ commit }, toolName) {
       commit('SET_ACTIVE_TOOL', toolName);

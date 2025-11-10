@@ -33,3 +33,6 @@ export {
   ClearMeasurementsCommand,
   ToggleToolCommand,
 } from './MeasurementCommands';
+
+// Transform commands
+export { TransformEntityCommand } from './TransformCommands';
