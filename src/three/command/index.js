@@ -17,6 +17,9 @@ export {
   UpdateActiveSelectionCommand,
 } from './PropertyCommands';
 
+// Entity property commands
+export { UpdateEntityPropertyCommand } from './EntityPropertyCommands';
+
 // Import commands
 export {
   ImportDxfCommand,
