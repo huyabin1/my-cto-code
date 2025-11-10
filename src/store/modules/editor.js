@@ -50,6 +50,7 @@ export default {
       viewMode: '2d', // '2d' | '3d' | 'sync'
       layoutMode: 'single', // 'single' | 'split' | 'floating'
     },
+    commandStack: null, // Reference to CommandStack instance
   }),
   getters: {
     activeMaterialDefinition(state) {
@@ -108,6 +109,26 @@ export default {
     SET_LAYOUT_MODE(state, mode) {
       state.viewport.layoutMode = mode;
     },
+    ADD_ENTITY(state, entity) {
+      if (!state.entities.find((e) => e.id === entity.id)) {
+        state.entities.push(entity);
+      }
+    },
+    REMOVE_ENTITY(state, entityId) {
+      const index = state.entities.findIndex((e) => e.id === entityId);
+      if (index > -1) {
+        state.entities.splice(index, 1);
+      }
+    },
+    UPDATE_ENTITY_PROPERTY(state, { entityId, property, value }) {
+      const entity = state.entities.find((e) => e.id === entityId);
+      if (entity) {
+        entity[property] = value;
+      }
+    },
+    SET_COMMAND_STACK(state, commandStack) {
+      state.commandStack = commandStack;
+    },
   },
   actions: {
     toggleDrawWallTool({ commit, state }) {
@@ -164,6 +185,37 @@ export default {
     },
     setLayoutMode({ commit }, mode) {
       commit('SET_LAYOUT_MODE', mode);
+    },
+    addEntity({ commit }, entity) {
+      commit('ADD_ENTITY', entity);
+    },
+    removeEntity({ commit }, entityId) {
+      commit('REMOVE_ENTITY', entityId);
+    },
+    setCommandStack({ commit }, commandStack) {
+      commit('SET_COMMAND_STACK', commandStack);
+    },
+    async updateProperties({ state, commit }, { entityId, property, newValue, oldValue }) {
+      if (!state.commandStack) {
+        throw new Error('CommandStack not initialized');
+      }
+
+      const { UpdateEntityPropertyCommand } = await import('@/three/command/EntityPropertyCommands');
+
+      const command = new UpdateEntityPropertyCommand(
+        this,
+        entityId,
+        property,
+        newValue,
+        oldValue
+      );
+
+      try {
+        await state.commandStack.execute(command);
+      } catch (error) {
+        console.error('Failed to update entity property:', error);
+        throw error;
+      }
     },
   },
 };
