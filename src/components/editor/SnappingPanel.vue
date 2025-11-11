@@ -2,29 +2,53 @@
   <section class="sidebar-block">
     <header class="block-header">
       <h2>捕捉设置</h2>
-      <el-switch v-model="snappingEnabled" active-color="#10b981" inactive-color="#9ca3af" />
+      <el-switch
+        v-model="snappingEnabled"
+        active-color="#10b981"
+        inactive-color="#9ca3af"
+      />
     </header>
 
     <div class="snapping-modes">
       <div class="block-row">
         <span class="row-label">正交捕捉</span>
-        <el-switch v-model="orthogonalModel" active-color="#10b981" inactive-color="#9ca3af" />
+        <el-switch
+          v-model="orthogonalModel"
+          active-color="#10b981"
+          inactive-color="#9ca3af"
+        />
       </div>
       <div class="block-row">
         <span class="row-label">45° 捕捉</span>
-        <el-switch v-model="diagonalModel" active-color="#10b981" inactive-color="#9ca3af" />
+        <el-switch
+          v-model="diagonalModel"
+          active-color="#10b981"
+          inactive-color="#9ca3af"
+        />
       </div>
       <div class="block-row">
         <span class="row-label">网格捕捉</span>
-        <el-switch v-model="gridModel" active-color="#10b981" inactive-color="#9ca3af" />
+        <el-switch
+          v-model="gridModel"
+          active-color="#10b981"
+          inactive-color="#9ca3af"
+        />
       </div>
       <div class="block-row">
         <span class="row-label">节点捕捉</span>
-        <el-switch v-model="nodeModel" active-color="#10b981" inactive-color="#9ca3af" />
+        <el-switch
+          v-model="nodeModel"
+          active-color="#10b981"
+          inactive-color="#9ca3af"
+        />
       </div>
       <div class="block-row">
         <span class="row-label">交点捕捉</span>
-        <el-switch v-model="intersectionModel" active-color="#10b981" inactive-color="#9ca3af" />
+        <el-switch
+          v-model="intersectionModel"
+          active-color="#10b981"
+          inactive-color="#9ca3af"
+        />
       </div>
     </div>
 
@@ -40,7 +64,10 @@
       />
     </div>
 
-    <div v-if="snappingInfo" class="snapping-info">
+    <div
+      v-if="snappingInfo"
+      class="snapping-info"
+    >
       <span class="info-label">捕捉类型：</span>
       <span class="info-value">{{ snappingInfo }}</span>
     </div>

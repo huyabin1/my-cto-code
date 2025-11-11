@@ -1,7 +1,9 @@
 <template>
   <div class="toolbar">
     <div class="toolbar-section">
-      <div class="section-title">工具 (快捷键)</div>
+      <div class="section-title">
+        工具 (快捷键)
+      </div>
       <div class="toolbar-buttons">
         <el-button-group>
           <el-tooltip
@@ -61,7 +63,9 @@
     </div>
 
     <div class="toolbar-section">
-      <div class="section-title">编辑 (快捷键)</div>
+      <div class="section-title">
+        编辑 (快捷键)
+      </div>
       <div class="toolbar-buttons">
         <el-button-group>
           <el-tooltip
@@ -102,7 +106,9 @@
     </div>
 
     <div class="toolbar-section">
-      <div class="section-title">视图 (快捷键)</div>
+      <div class="section-title">
+        视图 (快捷键)
+      </div>
       <div class="toolbar-info">
         <p class="info-item">
           <strong>滚轮缩放:</strong> 鼠标滚轮进行缩放
@@ -122,7 +128,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex';
+import { mapState } from 'vuex';
 
 export default {
   name: 'Toolbar',

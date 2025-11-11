@@ -2,7 +2,13 @@
   <section class="sidebar-block">
     <header class="block-header">
       <h2>项目管理</h2>
-      <el-tag v-if="projectInfo.isDirty" type="warning" size="mini">未保存</el-tag>
+      <el-tag
+        v-if="projectInfo.isDirty"
+        type="warning"
+        size="mini"
+      >
+        未保存
+      </el-tag>
     </header>
 
     <div class="project-controls">
@@ -43,30 +49,52 @@
           accept=".json"
           class="project-input"
           @change="onProjectFileChange"
-        />
+        >
       </div>
 
       <div class="control-group">
         <span class="control-label">导出格式</span>
         <div class="export-buttons">
-          <el-dropdown trigger="click" @command="handleGLTFExport">
-            <el-button size="small" icon="el-icon-download">
-              导出 glTF <i class="el-icon-arrow-down el-icon--right"></i>
+          <el-dropdown
+            trigger="click"
+            @command="handleGLTFExport"
+          >
+            <el-button
+              size="small"
+              icon="el-icon-download"
+            >
+              导出 glTF <i class="el-icon-arrow-down el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="gltf">glTF (.gltf)</el-dropdown-item>
-              <el-dropdown-item command="glb">glTF Binary (.glb)</el-dropdown-item>
-              <el-dropdown-item command="gltf-walls">仅墙体 glTF</el-dropdown-item>
+              <el-dropdown-item command="gltf">
+                glTF (.gltf)
+              </el-dropdown-item>
+              <el-dropdown-item command="glb">
+                glTF Binary (.glb)
+              </el-dropdown-item>
+              <el-dropdown-item command="gltf-walls">
+                仅墙体 glTF
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
 
-          <el-dropdown trigger="click" @command="handleOBJExport">
-            <el-button size="small" icon="el-icon-download">
-              导出 OBJ <i class="el-icon-arrow-down el-icon--right"></i>
+          <el-dropdown
+            trigger="click"
+            @command="handleOBJExport"
+          >
+            <el-button
+              size="small"
+              icon="el-icon-download"
+            >
+              导出 OBJ <i class="el-icon-arrow-down el-icon--right" />
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="obj">OBJ + MTL</el-dropdown-item>
-              <el-dropdown-item command="obj-walls">仅墙体 OBJ</el-dropdown-item>
+              <el-dropdown-item command="obj">
+                OBJ + MTL
+              </el-dropdown-item>
+              <el-dropdown-item command="obj-walls">
+                仅墙体 OBJ
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -98,7 +126,12 @@
       <div class="control-group">
         <span class="control-label">项目操作</span>
         <div class="button-group">
-          <el-button type="info" size="small" icon="el-icon-plus" @click="createNewProject">
+          <el-button
+            type="info"
+            size="small"
+            icon="el-icon-plus"
+            @click="createNewProject"
+          >
             新建项目
           </el-button>
         </div>
@@ -106,21 +139,44 @@
     </div>
 
     <!-- Auto-save History Dialog -->
-    <el-dialog title="自动保存历史" :visible.sync="autoSaveHistoryVisible" width="500px">
+    <el-dialog
+      title="自动保存历史"
+      :visible.sync="autoSaveHistoryVisible"
+      width="500px"
+    >
       <div class="auto-save-list">
-        <div v-for="(save, index) in autoSaveHistory" :key="index" class="auto-save-item">
+        <div
+          v-for="(save, index) in autoSaveHistory"
+          :key="index"
+          class="auto-save-item"
+        >
           <div class="save-info">
-            <div class="save-time">{{ formatTime(save.timestamp) }}</div>
-            <div class="save-details">保存 #{{ save.saveCount }}</div>
+            <div class="save-time">
+              {{ formatTime(save.timestamp) }}
+            </div>
+            <div class="save-details">
+              保存 #{{ save.saveCount }}
+            </div>
           </div>
-          <el-button type="primary" size="mini" @click="restoreFromAutoSave(index)">
+          <el-button
+            type="primary"
+            size="mini"
+            @click="restoreFromAutoSave(index)"
+          >
             恢复
           </el-button>
         </div>
-        <div v-if="autoSaveHistory.length === 0" class="no-saves">暂无自动保存记录</div>
+        <div
+          v-if="autoSaveHistory.length === 0"
+          class="no-saves"
+        >
+          暂无自动保存记录
+        </div>
       </div>
       <div slot="footer">
-        <el-button @click="autoSaveHistoryVisible = false">关闭</el-button>
+        <el-button @click="autoSaveHistoryVisible = false">
+          关闭
+        </el-button>
       </div>
     </el-dialog>
 

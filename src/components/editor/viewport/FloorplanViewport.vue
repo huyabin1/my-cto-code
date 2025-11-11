@@ -1,5 +1,8 @@
 <template>
-  <div ref="viewportContainer" class="floorplan-viewport"></div>
+  <div
+    ref="viewportContainer"
+    class="floorplan-viewport"
+  />
 </template>
 
 <script>

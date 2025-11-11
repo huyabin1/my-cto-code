@@ -1,5 +1,8 @@
 <template>
-  <div ref="threeContainer" class="three-scene-container"></div>
+  <div
+    ref="threeContainer"
+    class="three-scene-container"
+  />
 </template>
 
 <script>

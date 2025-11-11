@@ -16,14 +16,22 @@
       </div>
     </header>
 
-    <div v-if="entities.length === 0" class="empty-state">
+    <div
+      v-if="entities.length === 0"
+      class="empty-state"
+    >
       <div class="empty-icon">
-        <i class="el-icon-folder-opened"></i>
+        <i class="el-icon-folder-opened" />
       </div>
-      <p class="empty-text">暂无对象</p>
+      <p class="empty-text">
+        暂无对象
+      </p>
     </div>
 
-    <div v-else class="tree-container">
+    <div
+      v-else
+      class="tree-container"
+    >
       <el-tree
         ref="tree"
         :data="treeData"
@@ -36,7 +44,10 @@
         @node-contextmenu="handleContextMenu"
       >
         <template #default="{ node, data }">
-          <div class="tree-node-content" :class="{ 'is-selected': isNodeSelected(data) }">
+          <div
+            class="tree-node-content"
+            :class="{ 'is-selected': isNodeSelected(data) }"
+          >
             <div class="node-main">
               <el-checkbox
                 v-if="!data.isGroup"
@@ -45,11 +56,20 @@
                 @change="handleVisibilityChange(data, $event)"
                 @click.native.stop
               />
-              <i :class="getNodeIcon(data)" class="node-icon"></i>
+              <i
+                :class="getNodeIcon(data)"
+                class="node-icon"
+              />
               <span class="node-label">{{ data.label }}</span>
-              <span v-if="data.isGroup" class="node-count">({{ data.children.length }})</span>
+              <span
+                v-if="data.isGroup"
+                class="node-count"
+              >({{ data.children.length }})</span>
             </div>
-            <div v-if="!data.isGroup" class="node-actions">
+            <div
+              v-if="!data.isGroup"
+              class="node-actions"
+            >
               <el-button
                 v-if="data.locked"
                 type="text"
@@ -80,19 +100,33 @@
       :style="contextMenuStyle"
       @command="handleContextCommand"
     >
-      <span></span>
+      <span />
       <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item command="delete" icon="el-icon-delete">删除</el-dropdown-item>
+        <el-dropdown-item
+          command="delete"
+          icon="el-icon-delete"
+        >
+          删除
+        </el-dropdown-item>
         <el-dropdown-item
           :command="contextNode && contextNode.locked ? 'unlock' : 'lock'"
           :icon="contextNode && contextNode.locked ? 'el-icon-unlock' : 'el-icon-lock'"
         >
           {{ contextNode && contextNode.locked ? '解锁' : '锁定' }}
         </el-dropdown-item>
-        <el-dropdown-item command="rename" icon="el-icon-edit">重命名</el-dropdown-item>
-        <el-dropdown-item command="duplicate" icon="el-icon-document-copy" divided
-          >复制</el-dropdown-item
+        <el-dropdown-item
+          command="rename"
+          icon="el-icon-edit"
         >
+          重命名
+        </el-dropdown-item>
+        <el-dropdown-item
+          command="duplicate"
+          icon="el-icon-document-copy"
+          divided
+        >
+          复制
+        </el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>
   </section>

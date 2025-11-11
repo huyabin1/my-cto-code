@@ -145,7 +145,7 @@ class UpdateWallCommand extends Command {
     this.oldConfig = oldConfig ? { ...oldConfig } : { ...wall.userData.config };
     this.store = options.store || null;
     this.sceneGraph = options.sceneGraph || getSharedSceneGraph();
-    this.description = `更新墙体属性`;
+    this.description = '更新墙体属性';
   }
 
   async execute() {
