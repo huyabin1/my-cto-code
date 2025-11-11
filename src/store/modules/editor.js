@@ -69,7 +69,6 @@ export default {
       isDirty: false,
     },
     lastAutoSave: null,
-    entities: [],
     selection: createDefaultSelectionState(),
     viewport: {
       viewMode: '2d', // '2d' | '3d' | 'sync'
@@ -80,16 +79,6 @@ export default {
   getters: {
     activeMaterialDefinition(state) {
       return state.materials.find((item) => item.value === state.activeSelection.material);
-    },
-    selectedEntities(state) {
-      if (!state.selection.ids || state.selection.ids.length === 0) {
-        return [];
-      }
-      const selectionSet = new Set(state.selection.ids);
-      return state.entities.filter((entity) => selectionSet.has(entity.id));
-    },
-    primarySelectedEntity(state, getters) {
-      return getters.selectedEntities.length > 0 ? getters.selectedEntities[0] : null;
     },
     selectionMode(state) {
       return state.selection.mode;
@@ -176,32 +165,15 @@ export default {
     SET_LAST_AUTO_SAVE(state, timestamp) {
       state.lastAutoSave = timestamp;
     },
-    SET_ENTITIES(state, entities) {
-      state.entities = entities;
-    },
     SET_VIEW_MODE(state, mode) {
       state.viewport.viewMode = mode;
     },
     SET_LAYOUT_MODE(state, mode) {
       state.viewport.layoutMode = mode;
     },
-    ADD_ENTITY(state, entity) {
-      if (!state.entities.find((e) => e.id === entity.id)) {
-        state.entities.push(entity);
-      }
-    },
-    REMOVE_ENTITY(state, entityId) {
-      const index = state.entities.findIndex((e) => e.id === entityId);
-      if (index > -1) {
-        state.entities.splice(index, 1);
-      }
-    },
-    UPDATE_ENTITY_PROPERTY(state, { entityId, property, value }) {
-      const entity = state.entities.find((e) => e.id === entityId);
-      if (entity) {
-        entity[property] = value;
-      }
-    },
+    // Entity management moved to entities module
+    // Entity management moved to entities module
+    // Entity management moved to entities module
     SET_COMMAND_STACK(state, commandStack) {
       state.commandStack = commandStack;
     },
@@ -347,16 +319,11 @@ export default {
     setLayoutMode({ commit }, mode) {
       commit('SET_LAYOUT_MODE', mode);
     },
-    addEntity({ commit }, entity) {
-      commit('ADD_ENTITY', entity);
-    },
-    removeEntity({ commit }, entityId) {
-      commit('REMOVE_ENTITY', entityId);
-    },
+    // Entity management actions moved to entities module
     setCommandStack({ commit }, commandStack) {
       commit('SET_COMMAND_STACK', commandStack);
     },
-    async updateProperties({ state, commit }, { entityId, property, newValue, oldValue }) {
+    async updateProperties({ state, commit, dispatch }, { entityId, property, newValue, oldValue }) {
       if (!state.commandStack) {
         throw new Error('CommandStack not initialized');
       }

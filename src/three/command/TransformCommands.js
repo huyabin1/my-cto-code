@@ -63,7 +63,7 @@ class TransformEntityCommand extends Command {
     this.sceneGraph = options.sceneGraph || getSharedSceneGraph();
     this.description = `Transform entity ${entityId}`;
 
-    const entity = this.store.state.editor.entities.find((item) => item.id === entityId);
+    const entity = this.store.getters['entities/getEntityById'](entityId);
     if (!entity) {
       throw new Error(`Entity ${entityId} not found`);
     }
@@ -81,9 +81,14 @@ class TransformEntityCommand extends Command {
 
   applyTransform(transform) {
     if (this.entity) {
-      this.entity.position = [...transform.position];
-      this.entity.rotation = [...transform.rotation];
-      this.entity.scale = [...transform.scale];
+      this.store.dispatch('entities/updateEntity', {
+        id: this.entityId,
+        updates: {
+          position: [...transform.position],
+          rotation: [...transform.rotation],
+          scale: [...transform.scale],
+        }
+      });
     }
 
     const sceneEntity = this.sceneGraph.getEntity(this.entityId);

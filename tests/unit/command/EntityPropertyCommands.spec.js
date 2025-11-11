@@ -48,10 +48,20 @@ describe('UpdateEntityPropertyCommand', () => {
     // Setup mock store
     mockStore = {
       state: {
-        editor: {
+        editor: {},
+        entities: {
           entities: [{ ...entity }],
+          indexes: {
+            byId: new Map([['wall-1', { ...entity }]]),
+          },
         },
       },
+      getters: {
+        'entities/getEntityById': jest.fn((id) => 
+          id === 'wall-1' ? { ...entity } : null
+        ),
+      },
+      dispatch: jest.fn(),
       commit: jest.fn(),
     };
 
@@ -98,7 +108,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should throw error if entity not found', () => {
-      mockStore.state.editor.entities = [];
+      mockStore.getters['entities/getEntityById'].mockReturnValue(null);
 
       expect(() => {
         new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0);
@@ -155,8 +165,10 @@ describe('UpdateEntityPropertyCommand', () => {
 
       const result = await command.execute();
 
-      const updatedEntity = mockStore.state.editor.entities[0];
-      expect(updatedEntity.height).toBe(3.0);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.0 }
+      });
       expect(result).toBe(3.0);
     });
 
