@@ -109,6 +109,8 @@
 
         <MeasurementPanel />
 
+        <ObjectExplorer />
+
         <PropertyPanel />
 
         <UndoRedoPanel />
@@ -118,15 +120,15 @@
     </aside>
 
     <main class="editor-canvas" :class="canvasLayoutClass">
-      <FloorplanViewport 
-        v-if="viewModeModel === '2d' || viewModeModel === 'sync'" 
-        ref="floorplanViewport" 
+      <FloorplanViewport
+        v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
+        ref="floorplanViewport"
         class="canvas-scene"
-        :class="{'split-view': viewModeModel === 'sync' && layoutModeModel === 'split'}"
+        :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
       />
-      <PreviewViewport 
-        v-if="viewModeModel === '3d' || viewModeModel === 'sync'" 
-        ref="previewViewport" 
+      <PreviewViewport
+        v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
+        ref="previewViewport"
         class="canvas-scene preview-scene"
         :class="previewViewportClass"
       />
@@ -144,6 +146,7 @@ import SnappingPanel from './SnappingPanel';
 import MeasurementPanel from './MeasurementPanel';
 import UndoRedoPanel from './UndoRedoPanel';
 import ProjectPanel from './ProjectPanel';
+import ObjectExplorer from './panels/ObjectExplorer';
 
 export default {
   name: 'EditorLayout',
@@ -155,6 +158,7 @@ export default {
     MeasurementPanel,
     UndoRedoPanel,
     ProjectPanel,
+    ObjectExplorer,
   },
   computed: {
     ...mapState('editor', {
