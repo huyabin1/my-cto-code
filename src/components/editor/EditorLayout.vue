@@ -120,18 +120,21 @@
     </aside>
 
     <main class="editor-canvas" :class="canvasLayoutClass">
-      <FloorplanViewport
-        v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
-        ref="floorplanViewport"
-        class="canvas-scene"
-        :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
-      />
-      <PreviewViewport
-        v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
-        ref="previewViewport"
-        class="canvas-scene preview-scene"
-        :class="previewViewportClass"
-      />
+      <Toolbar />
+      <div class="canvas-wrapper">
+        <FloorplanViewport
+          v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
+          ref="floorplanViewport"
+          class="canvas-scene"
+          :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
+        />
+        <PreviewViewport
+          v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
+          ref="previewViewport"
+          class="canvas-scene preview-scene"
+          :class="previewViewportClass"
+        />
+      </div>
     </main>
   </div>
 </template>
@@ -147,6 +150,7 @@ import MeasurementPanel from './MeasurementPanel';
 import UndoRedoPanel from './UndoRedoPanel';
 import ProjectPanel from './ProjectPanel';
 import ObjectExplorer from './panels/ObjectExplorer';
+import Toolbar from './Toolbar';
 
 export default {
   name: 'EditorLayout',
@@ -159,6 +163,7 @@ export default {
     UndoRedoPanel,
     ProjectPanel,
     ObjectExplorer,
+    Toolbar,
   },
   computed: {
     ...mapState('editor', {
@@ -542,6 +547,14 @@ export default {
   position: relative;
   background: #1f2937;
   display: flex;
+  flex-direction: column;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  display: flex;
+  position: relative;
+  min-height: 0;
 }
 
 .canvas-scene {
@@ -560,7 +573,7 @@ export default {
 }
 
 /* Split layout - side by side */
-.split-layout {
+.split-layout .canvas-wrapper {
   flex-direction: row;
   gap: 2px;
 }
@@ -575,7 +588,7 @@ export default {
 }
 
 /* Floating layout - 3D preview floats over 2D */
-.floating-layout {
+.floating-layout .canvas-wrapper {
   position: relative;
 }
 
@@ -593,6 +606,11 @@ export default {
 }
 
 /* Single layout - just one view */
+.single-layout .canvas-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
 .single-layout .canvas-scene {
   width: 100%;
   height: 100%;
