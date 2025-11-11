@@ -1,5 +1,8 @@
 <template>
-  <section v-if="showMeasurementPanel" class="sidebar-block">
+  <section
+    v-if="showMeasurementPanel"
+    class="sidebar-block"
+  >
     <header class="block-header">
       <h2>测量工具</h2>
     </header>
@@ -17,23 +20,46 @@
         </el-button>
       </div>
 
-      <div v-if="activeTool" class="tool-actions">
-        <p class="tool-hint">{{ toolHints[activeTool] }}</p>
+      <div
+        v-if="activeTool"
+        class="tool-actions"
+      >
+        <p class="tool-hint">
+          {{ toolHints[activeTool] }}
+        </p>
         <div class="action-buttons">
-          <el-button size="small" @click="clearMeasurements">清空</el-button>
-          <el-button type="success" size="small" @click="exportMeasurements">导出</el-button>
+          <el-button
+            size="small"
+            @click="clearMeasurements"
+          >
+            清空
+          </el-button>
+          <el-button
+            type="success"
+            size="small"
+            @click="exportMeasurements"
+          >
+            导出
+          </el-button>
         </div>
       </div>
     </div>
 
-    <div v-if="measurements.length > 0" class="measurement-results">
+    <div
+      v-if="measurements.length > 0"
+      class="measurement-results"
+    >
       <header class="results-header">
         <h3>测量结果</h3>
         <span class="result-count">({{ measurements.length }})</span>
       </header>
 
       <div class="results-list">
-        <div v-for="(m, index) in measurements" :key="index" class="result-item">
+        <div
+          v-for="(m, index) in measurements"
+          :key="index"
+          class="result-item"
+        >
           <span class="result-type">{{ formatMeasurementType(m.type) }}</span>
           <span class="result-value">{{ formatMeasurementValue(m) }}</span>
           <el-button

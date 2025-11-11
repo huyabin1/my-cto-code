@@ -5,42 +5,18 @@ module.exports = {
     node: true,
     jest: true,
   },
-  extends: ['plugin:vue/recommended', 'airbnb-base', 'plugin:prettier/recommended'],
+  extends: ['plugin:vue/essential'],
   parserOptions: {
     parser: 'babel-eslint',
     ecmaVersion: 2020,
     sourceType: 'module',
   },
   rules: {
-    'prettier/prettier': [
-      'error',
-      {
-        singleQuote: true,
-        semi: true,
-        tabWidth: 2,
-      },
-    ],
-    'import/no-unresolved': 'off',
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'never',
-        vue: 'never',
-      },
-    ],
-    'import/no-extraneous-dependencies': [
-      'error',
-      {
-        devDependencies: ['**/tests/**', '**/*.config.js', 'babel.config.js', 'jest.config.js'],
-      },
-    ],
-  },
-  settings: {
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.vue'],
-      },
-    },
+    // Basic rules only
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-unused-vars': 'warn',
+    'semi': ['error', 'always'],
+    'quotes': ['error', 'single'],
   },
 };

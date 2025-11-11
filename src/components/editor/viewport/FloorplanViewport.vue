@@ -1,5 +1,8 @@
 <template>
-  <div ref="viewportContainer" class="floorplan-viewport"></div>
+  <div
+    ref="viewportContainer"
+    class="floorplan-viewport"
+  />
 </template>
 
 <script>
@@ -8,6 +11,7 @@ import { OrbitControls } from 'three-stdlib';
 import ToolController from '@/three/tool/ToolController';
 import SelectionManager from '@/three/helper/SelectionManager';
 import TransformGizmo from '@/three/helper/TransformGizmo';
+import InputManager from '@/utils/InputManager';
 import { getSharedSceneGraph } from '@/three/core/SceneGraph';
 
 export default {
@@ -24,6 +28,7 @@ export default {
       sceneGraph: null,
       selectionManager: null,
       transformGizmo: null,
+      inputManager: null,
       unwatchSelection: null,
       unwatchSnapping: null,
       frustumSize: 60,
@@ -35,6 +40,7 @@ export default {
     this.initToolController();
     this.initSelectionManager();
     this.initTransformGizmo();
+    this.initInputManager();
     this.watchSelection();
     this.watchSnapping();
     this.animate();
@@ -138,6 +144,59 @@ export default {
       this.syncTransformTarget(this.store.state.editor.selection);
     },
 
+    initInputManager() {
+      this.inputManager = new InputManager(
+        this.camera,
+        this.renderer,
+        this.store,
+        {
+          minZoom: 0.2,
+          maxZoom: 5,
+          zoomSpeed: 0.1,
+          panBoundary: true,
+        }
+      );
+
+      this.inputManager.on('undo', () => {
+        this.toolController.undo();
+      });
+
+      this.inputManager.on('redo', () => {
+        this.toolController.redo();
+      });
+
+      this.inputManager.on('delete', () => {
+        if (this.store.state.editor.selection && this.store.state.editor.selection.ids.length > 0) {
+          this.store.state.editor.selection.ids.forEach((id) => {
+            const entity = this.store.state.editor.entities.find((e) => e.id === id);
+            if (entity) {
+              this.store.dispatch('editor/removeEntity', id);
+            }
+          });
+          this.store.dispatch('editor/clearSelection');
+        }
+      });
+
+      this.inputManager.on('cancel', () => {
+        if (this.store.state.editor.drawWallToolEnabled) {
+          this.store.dispatch('editor/setDrawWallTool', false);
+        }
+        this.store.dispatch('editor/clearSelection');
+      });
+
+      this.inputManager.on('tooltrigger', ({ tool }) => {
+        if (tool === 'select') {
+          this.store.dispatch('editor/setDrawWallTool', false);
+        }
+      });
+
+      this.inputManager.on('pan', () => {
+        if (this.controls) {
+          this.controls.update();
+        }
+      });
+    },
+
     watchSelection() {
       this.unwatchSelection = this.store.watch(
         (state) => state.editor.selection,
@@ -222,6 +281,11 @@ export default {
       if (this.unwatchSnapping) {
         this.unwatchSnapping();
         this.unwatchSnapping = null;
+      }
+
+      if (this.inputManager) {
+        this.inputManager.destroy();
+        this.inputManager = null;
       }
 
       if (this.selectionManager) {

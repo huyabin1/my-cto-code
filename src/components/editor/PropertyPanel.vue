@@ -2,17 +2,26 @@
   <section class="sidebar-block property-panel">
     <header class="property-header">
       <h2>属性面板</h2>
-      <span v-if="hasSelection" class="property-subtitle">
+      <span
+        v-if="hasSelection"
+        class="property-subtitle"
+      >
         {{ selectionInfo }}
       </span>
-      <span v-else class="property-subtitle">
+      <span
+        v-else
+        class="property-subtitle"
+      >
         未选中任何元素
       </span>
     </header>
 
-    <div v-if="!hasSelection" class="no-selection">
+    <div
+      v-if="!hasSelection"
+      class="no-selection"
+    >
       <div class="no-selection-icon">
-        <i class="el-icon-mouse"></i>
+        <i class="el-icon-mouse" />
       </div>
       <div class="no-selection-text">
         <p>请选择一个元素以编辑其属性</p>

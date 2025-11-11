@@ -1,6 +1,9 @@
 <template>
   <div class="property-field">
-    <label class="field-label" :for="fieldId">{{ field.label }}</label>
+    <label
+      class="field-label"
+      :for="fieldId"
+    >{{ field.label }}</label>
     <div class="number-input-wrapper">
       <el-input-number
         :id="fieldId"
@@ -15,9 +18,17 @@
         @change="handleChange"
         @blur="handleBlur"
       />
-      <span v-if="field.unit" class="field-unit">{{ field.unit }}</span>
+      <span
+        v-if="field.unit"
+        class="field-unit"
+      >{{ field.unit }}</span>
     </div>
-    <div v-if="errorMessage" class="field-error">{{ errorMessage }}</div>
+    <div
+      v-if="errorMessage"
+      class="field-error"
+    >
+      {{ errorMessage }}
+    </div>
   </div>
 </template>
 

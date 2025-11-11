@@ -1,19 +1,32 @@
 <template>
   <div class="property-renderer">
-    <div v-if="!schema" class="no-schema">
+    <div
+      v-if="!schema"
+      class="no-schema"
+    >
       <div class="no-schema-icon">
-        <i class="el-icon-warning"></i>
+        <i class="el-icon-warning" />
       </div>
       <div class="no-schema-text">
         <p>当前选中元素类型暂不支持属性编辑</p>
-        <p class="no-schema-subtitle">类型: {{ entity.type || '未知' }}</p>
+        <p class="no-schema-subtitle">
+          类型: {{ entity.type || '未知' }}
+        </p>
       </div>
     </div>
 
-    <div v-else class="schema-properties">
-      <h3 class="schema-title">{{ schema.title }}</h3>
+    <div
+      v-else
+      class="schema-properties"
+    >
+      <h3 class="schema-title">
+        {{ schema.title }}
+      </h3>
       
-      <div v-if="isMultiSelect" class="multi-select-info">
+      <div
+        v-if="isMultiSelect"
+        class="multi-select-info"
+      >
         <el-alert
           title="多选模式"
           type="info"

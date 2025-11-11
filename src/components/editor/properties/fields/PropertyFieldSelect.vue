@@ -1,6 +1,9 @@
 <template>
   <div class="property-field">
-    <label class="field-label" :for="fieldId">{{ field.label }}</label>
+    <label
+      class="field-label"
+      :for="fieldId"
+    >{{ field.label }}</label>
     <el-select
       :id="fieldId"
       v-model="localValue"
@@ -17,7 +20,12 @@
         :value="option.value"
       />
     </el-select>
-    <div v-if="errorMessage" class="field-error">{{ errorMessage }}</div>
+    <div
+      v-if="errorMessage"
+      class="field-error"
+    >
+      {{ errorMessage }}
+    </div>
   </div>
 </template>
 

@@ -1,25 +1,28 @@
 <template>
   <div class="preview-viewport">
-    <div ref="viewportContainer" class="viewport-container"></div>
+    <div
+      ref="viewportContainer"
+      class="viewport-container"
+    />
     <div class="viewport-controls">
       <el-button-group>
         <el-button 
           size="mini" 
           icon="el-icon-refresh-left" 
-          @click="resetView"
           title="重置视角"
+          @click="resetView"
         />
         <el-button 
           size="mini" 
           icon="el-icon-zoom-in" 
-          @click="zoomIn"
           title="放大"
+          @click="zoomIn"
         />
         <el-button 
           size="mini" 
           icon="el-icon-zoom-out" 
-          @click="zoomOut"
           title="缩小"
+          @click="zoomOut"
         />
       </el-button-group>
     </div>

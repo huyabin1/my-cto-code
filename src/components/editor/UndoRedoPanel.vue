@@ -35,8 +35,13 @@
       </div>
     </div>
 
-    <div v-if="undoHistory.length > 0" class="history-section">
-      <h3 class="history-title">最近操作</h3>
+    <div
+      v-if="undoHistory.length > 0"
+      class="history-section"
+    >
+      <h3 class="history-title">
+        最近操作
+      </h3>
       <div class="history-list">
         <div
           v-for="(item, index) in recentHistory"

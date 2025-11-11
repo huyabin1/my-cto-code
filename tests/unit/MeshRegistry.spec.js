@@ -173,7 +173,7 @@ describe('MeshRegistry', () => {
     it('throws error when updating non-existent mesh', () => {
       expect(() => {
         registry.updateMesh('non-existent', {});
-      }).toThrow("Mesh with id 'non-existent' not found");
+      }).toThrow('Mesh with id \'non-existent\' not found');
     });
 
     it('throws error when updating unsupported mesh type', () => {

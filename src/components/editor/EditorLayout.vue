@@ -7,7 +7,11 @@
             <h1>空间编辑器</h1>
             <span class="header-subtitle">组装 CAD 数据并开始绘制墙体</span>
           </div>
-          <el-select v-model="selectedUnitModel" size="mini" class="unit-select">
+          <el-select
+            v-model="selectedUnitModel"
+            size="mini"
+            class="unit-select"
+          >
             <el-option
               v-for="option in unitOptions"
               :key="option.value"
@@ -21,15 +25,35 @@
           <header class="block-header">
             <h2>视图模式</h2>
           </header>
-          <el-radio-group v-model="viewModeModel" size="small" class="view-mode-group">
-            <el-radio-button label="2d">平面</el-radio-button>
-            <el-radio-button label="3d">3D</el-radio-button>
-            <el-radio-button label="sync">同步</el-radio-button>
+          <el-radio-group
+            v-model="viewModeModel"
+            size="small"
+            class="view-mode-group"
+          >
+            <el-radio-button label="2d">
+              平面
+            </el-radio-button>
+            <el-radio-button label="3d">
+              3D
+            </el-radio-button>
+            <el-radio-button label="sync">
+              同步
+            </el-radio-button>
           </el-radio-group>
-          <div v-if="viewModeModel === 'sync'" class="layout-options">
-            <el-radio-group v-model="layoutModeModel" size="mini">
-              <el-radio label="split">分屏</el-radio>
-              <el-radio label="floating">悬浮</el-radio>
+          <div
+            v-if="viewModeModel === 'sync'"
+            class="layout-options"
+          >
+            <el-radio-group
+              v-model="layoutModeModel"
+              size="mini"
+            >
+              <el-radio label="split">
+                分屏
+              </el-radio>
+              <el-radio label="floating">
+                悬浮
+              </el-radio>
             </el-radio-group>
           </div>
         </section>
@@ -37,13 +61,22 @@
         <section class="sidebar-block">
           <header class="block-header">
             <h2>CAD 导入</h2>
-            <el-tag v-if="importStatus !== 'idle'" :type="statusTagType" size="mini">
+            <el-tag
+              v-if="importStatus !== 'idle'"
+              :type="statusTagType"
+              size="mini"
+            >
               {{ importStatusText }}
             </el-tag>
           </header>
 
           <div class="dxf-upload">
-            <el-button type="primary" size="small" icon="el-icon-upload" @click="triggerDxfSelect">
+            <el-button
+              type="primary"
+              size="small"
+              icon="el-icon-upload"
+              @click="triggerDxfSelect"
+            >
               导入 DXF
             </el-button>
             <input
@@ -52,10 +85,15 @@
               accept=".dxf"
               class="dxf-input"
               @change="onDxfFileChange"
-            />
+            >
           </div>
 
-          <p v-if="lastImportedFile" class="upload-hint">最新文件：{{ lastImportedFile }}</p>
+          <p
+            v-if="lastImportedFile"
+            class="upload-hint"
+          >
+            最新文件：{{ lastImportedFile }}
+          </p>
           <el-alert
             v-if="importError"
             type="error"
@@ -73,7 +111,11 @@
           </header>
           <div class="block-row">
             <span class="row-label">绘制墙体</span>
-            <el-switch v-model="drawToolModel" active-color="#2563eb" inactive-color="#9ca3af" />
+            <el-switch
+              v-model="drawToolModel"
+              active-color="#2563eb"
+              inactive-color="#9ca3af"
+            />
           </div>
         </section>
 
@@ -83,8 +125,15 @@
           <header class="block-header">
             <h2>图层可见性</h2>
           </header>
-          <el-checkbox-group v-model="layerVisibilityModel" class="layer-list">
-            <el-checkbox v-for="layer in layers" :key="layer.id" :label="layer.id">
+          <el-checkbox-group
+            v-model="layerVisibilityModel"
+            class="layer-list"
+          >
+            <el-checkbox
+              v-for="layer in layers"
+              :key="layer.id"
+              :label="layer.id"
+            >
               {{ layer.name }}
             </el-checkbox>
           </el-checkbox-group>
@@ -119,19 +168,25 @@
       </div>
     </aside>
 
-    <main class="editor-canvas" :class="canvasLayoutClass">
-      <FloorplanViewport
-        v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
-        ref="floorplanViewport"
-        class="canvas-scene"
-        :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
-      />
-      <PreviewViewport
-        v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
-        ref="previewViewport"
-        class="canvas-scene preview-scene"
-        :class="previewViewportClass"
-      />
+    <main
+      class="editor-canvas"
+      :class="canvasLayoutClass"
+    >
+      <Toolbar />
+      <div class="canvas-wrapper">
+        <FloorplanViewport
+          v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
+          ref="floorplanViewport"
+          class="canvas-scene"
+          :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
+        />
+        <PreviewViewport
+          v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
+          ref="previewViewport"
+          class="canvas-scene preview-scene"
+          :class="previewViewportClass"
+        />
+      </div>
     </main>
   </div>
 </template>
@@ -147,6 +202,7 @@ import MeasurementPanel from './MeasurementPanel';
 import UndoRedoPanel from './UndoRedoPanel';
 import ProjectPanel from './ProjectPanel';
 import ObjectExplorer from './panels/ObjectExplorer';
+import Toolbar from './Toolbar';
 
 export default {
   name: 'EditorLayout',
@@ -159,6 +215,7 @@ export default {
     UndoRedoPanel,
     ProjectPanel,
     ObjectExplorer,
+    Toolbar,
   },
   computed: {
     ...mapState('editor', {
@@ -542,6 +599,14 @@ export default {
   position: relative;
   background: #1f2937;
   display: flex;
+  flex-direction: column;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  display: flex;
+  position: relative;
+  min-height: 0;
 }
 
 .canvas-scene {
@@ -560,7 +625,7 @@ export default {
 }
 
 /* Split layout - side by side */
-.split-layout {
+.split-layout .canvas-wrapper {
   flex-direction: row;
   gap: 2px;
 }
@@ -575,7 +640,7 @@ export default {
 }
 
 /* Floating layout - 3D preview floats over 2D */
-.floating-layout {
+.floating-layout .canvas-wrapper {
   position: relative;
 }
 
@@ -593,6 +658,11 @@ export default {
 }
 
 /* Single layout - just one view */
+.single-layout .canvas-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
 .single-layout .canvas-scene {
   width: 100%;
   height: 100%;
