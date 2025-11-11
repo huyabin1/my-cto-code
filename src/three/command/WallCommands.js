@@ -1,50 +1,128 @@
 import * as THREE from 'three';
 import Command from './Command';
 import WallFactory from '../factory/WallFactory';
+import { getSharedSceneGraph } from '@/three/core/SceneGraph';
+
+const DEFAULT_COLOR_HEX = '#ffffff';
+const DEFAULT_NAME_PREFIX = '墙体';
+
+function toHexColor(value) {
+  if (typeof value === 'number') {
+    return `#${value.toString(16).padStart(6, '0')}`;
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (value instanceof THREE.Color) {
+    return `#${value.getHexString()}`;
+  }
+  return DEFAULT_COLOR_HEX;
+}
+
+function vector2ToArray(vec) {
+  if (!vec) {
+    return null;
+  }
+  if (vec instanceof THREE.Vector2) {
+    return [vec.x, vec.y];
+  }
+  if (Array.isArray(vec) && vec.length === 2) {
+    return [...vec];
+  }
+  if (typeof vec.x === 'number' && typeof vec.y === 'number') {
+    return [vec.x, vec.y];
+  }
+  return null;
+}
+
+function buildWallEntityData(wall) {
+  const config = wall.userData?.config || {};
+  const wallId = wall.userData?.id || THREE.MathUtils.generateUUID();
+  const fallbackName = `${DEFAULT_NAME_PREFIX} ${wallId.slice(-4)}`;
+
+  return {
+    id: wallId,
+    type: wall.userData?.type || 'wall',
+    name: wall.userData?.name || fallbackName,
+    material: config.material,
+    color: toHexColor(config.color),
+    height: config.height,
+    thickness: config.thickness,
+    start: vector2ToArray(config.start),
+    end: vector2ToArray(config.end),
+    position: wall.position.toArray(),
+    rotation: [wall.rotation.x, wall.rotation.y, wall.rotation.z],
+    scale: wall.scale.toArray(),
+  };
+}
+
+function updateEntityInStore(store, entityData) {
+  if (!store) {
+    return;
+  }
+  const entities = store.state.editor.entities;
+  const index = entities.findIndex((item) => item.id === entityData.id);
+  if (index > -1) {
+    Object.assign(entities[index], entityData);
+  } else {
+    store.commit('editor/ADD_ENTITY', entityData);
+  }
+}
+
+function removeEntityFromStore(store, entityId) {
+  if (!store) {
+    return;
+  }
+  store.commit('editor/REMOVE_ENTITY', entityId);
+}
 
 /**
  * CreateWallCommand - 创建墙体命令
  */
 class CreateWallCommand extends Command {
-  /**
-   * @param {THREE.Scene} scene - Three.js场景
-   * @param {Object} wallConfig - 墙体配置
-   * @param {THREE.Vector2} wallConfig.start - 起始点
-   * @param {THREE.Vector2} wallConfig.end - 结束点
-   * @param {number} wallConfig.height - 高度
-   * @param {number} wallConfig.thickness - 厚度
-   * @param {string} wallConfig.material - 材质
-   * @param {number} [wallConfig.color] - 颜色
-   */
-  constructor(scene, wallConfig) {
+  constructor(scene, wallConfig, options = {}) {
     super();
     this.scene = scene;
     this.wallConfig = { ...wallConfig };
     this.wall = null;
+    this.store = options.store || null;
+    this.sceneGraph = options.sceneGraph || getSharedSceneGraph();
+    this.entityData = null;
     this.description = `创建墙体 (${wallConfig.start.x.toFixed(2)}, ${wallConfig.start.y.toFixed(
       2
     )}) -> (${wallConfig.end.x.toFixed(2)}, ${wallConfig.end.y.toFixed(2)})`;
   }
 
   async execute() {
-    this.wall = WallFactory.create(this.wallConfig);
-    this.scene.add(this.wall);
+    if (!this.wall) {
+      this.wall = WallFactory.create(this.wallConfig);
+    }
+
+    if (!this.wall.parent && this.scene) {
+      this.scene.add(this.wall);
+    }
+
+    this.entityData = buildWallEntityData(this.wall);
+
+    updateEntityInStore(this.store, this.entityData);
+    if (this.sceneGraph) {
+      this.sceneGraph.addEntity(this.entityData.id, { ...this.entityData }, this.wall);
+    }
+
     return this.wall;
   }
 
   async undo() {
-    if (this.wall && this.scene) {
-      this.scene.remove(this.wall);
-
-      // 清理资源
-      this.wall.traverse((child) => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) child.material.dispose();
-      });
-
-      return true;
+    if (!this.wall || !this.scene) {
+      return false;
     }
-    return false;
+
+    this.scene.remove(this.wall);
+    if (this.sceneGraph) {
+      this.sceneGraph.removeEntity(this.wall.userData.id);
+    }
+    removeEntityFromStore(this.store, this.wall.userData.id);
+    return true;
   }
 
   getDescription() {
@@ -60,26 +138,33 @@ class CreateWallCommand extends Command {
  * UpdateWallCommand - 更新墙体命令
  */
 class UpdateWallCommand extends Command {
-  /**
-   * @param {THREE.Group} wall - 墙体对象
-   * @param {Object} newConfig - 新的配置
-   * @param {Object} [oldConfig] - 旧的配置（如果不提供，会从wall.userData中获取）
-   */
-  constructor(wall, newConfig, oldConfig = null) {
+  constructor(wall, newConfig, oldConfig = null, options = {}) {
     super();
     this.wall = wall;
     this.newConfig = { ...newConfig };
     this.oldConfig = oldConfig ? { ...oldConfig } : { ...wall.userData.config };
+    this.store = options.store || null;
+    this.sceneGraph = options.sceneGraph || getSharedSceneGraph();
     this.description = `更新墙体属性`;
   }
 
   async execute() {
     WallFactory.update(this.wall, this.newConfig);
+    const entityData = buildWallEntityData(this.wall);
+    updateEntityInStore(this.store, entityData);
+    if (this.sceneGraph) {
+      this.sceneGraph.updateEntity(entityData.id, entityData);
+    }
     return this.wall;
   }
 
   async undo() {
     WallFactory.update(this.wall, this.oldConfig);
+    const entityData = buildWallEntityData(this.wall);
+    updateEntityInStore(this.store, entityData);
+    if (this.sceneGraph) {
+      this.sceneGraph.updateEntity(entityData.id, entityData);
+    }
     return this.wall;
   }
 
@@ -103,7 +188,10 @@ class UpdateWallCommand extends Command {
 
   merge(other) {
     const mergedConfig = { ...this.oldConfig, ...other.newConfig };
-    return new UpdateWallCommand(this.wall, mergedConfig, this.oldConfig);
+    return new UpdateWallCommand(this.wall, mergedConfig, this.oldConfig, {
+      store: this.store,
+      sceneGraph: this.sceneGraph,
+    });
   }
 }
 
@@ -111,31 +199,50 @@ class UpdateWallCommand extends Command {
  * DeleteWallCommand - 删除墙体命令
  */
 class DeleteWallCommand extends Command {
-  /**
-   * @param {THREE.Scene} scene - Three.js场景
-   * @param {THREE.Group} wall - 要删除的墙体
-   */
-  constructor(scene, wall) {
+  constructor(scene, wall, options = {}) {
     super();
     this.scene = scene;
     this.wall = wall;
+    this.store = options.store || null;
+    this.sceneGraph = options.sceneGraph || getSharedSceneGraph();
+    this.entityData = buildWallEntityData(wall);
     this.description = `删除墙体 ${wall.userData.id}`;
   }
 
   async execute() {
-    if (this.wall && this.scene) {
-      this.scene.remove(this.wall);
-      return true;
+    if (!this.wall || !this.scene) {
+      return false;
     }
-    return false;
+
+    if (this.wall.parent) {
+      this.scene.remove(this.wall);
+    }
+
+    if (this.sceneGraph) {
+      this.sceneGraph.removeEntity(this.wall.userData.id);
+    }
+
+    removeEntityFromStore(this.store, this.wall.userData.id);
+    return true;
   }
 
   async undo() {
-    if (this.wall && this.scene) {
-      this.scene.add(this.wall);
-      return true;
+    if (!this.wall || !this.scene) {
+      return false;
     }
-    return false;
+
+    if (!this.wall.parent) {
+      this.scene.add(this.wall);
+    }
+
+    this.entityData = buildWallEntityData(this.wall);
+    updateEntityInStore(this.store, this.entityData);
+
+    if (this.sceneGraph) {
+      this.sceneGraph.addEntity(this.entityData.id, { ...this.entityData }, this.wall);
+    }
+
+    return true;
   }
 
   getDescription() {
@@ -151,10 +258,6 @@ class DeleteWallCommand extends Command {
  * BatchWallCommand - 批量墙体操作命令
  */
 class BatchWallCommand extends Command {
-  /**
-   * @param {Array<Command>} commands - 要批量执行的命令数组
-   * @param {string} description - 命令描述
-   */
   constructor(commands, description = '批量墙体操作') {
     super();
     this.commands = [...commands];
@@ -168,9 +271,8 @@ class BatchWallCommand extends Command {
         const result = await command.execute();
         results.push(result);
       } catch (error) {
-        // 如果批量执行中的某个命令失败，需要回滚已执行的命令
         console.error('Batch command execution failed:', error);
-        for (let i = this.commands.indexOf(command) - 1; i >= 0; i--) {
+        for (let i = this.commands.indexOf(command) - 1; i >= 0; i -= 1) {
           try {
             await this.commands[i].undo();
           } catch (undoError) {
@@ -185,8 +287,7 @@ class BatchWallCommand extends Command {
 
   async undo() {
     const results = [];
-    // 逆序撤销
-    for (let i = this.commands.length - 1; i >= 0; i--) {
+    for (let i = this.commands.length - 1; i >= 0; i -= 1) {
       try {
         const result = await this.commands[i].undo();
         results.push(result);

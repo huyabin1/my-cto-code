@@ -21,8 +21,8 @@
 
     <PropertyRenderer
       v-else
-      :entity="activeSelection"
-      :selected-entities="selectedEntities"
+      :entity="activeEntity"
+      :selected-entities="selectedEntitiesList"
       @field-change="handleFieldChange"
       @field-blur="handleFieldBlur"
     />
@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import PropertyRenderer from './properties/PropertyRenderer.vue';
 
 export default {
@@ -39,28 +39,35 @@ export default {
     PropertyRenderer,
   },
   computed: {
-    ...mapState('editor', ['activeSelection', 'entities']),
-    
+    ...mapGetters('editor', {
+      selectedEntitiesFromStore: 'selectedEntities',
+      primaryEntityFromStore: 'primarySelectedEntity',
+      selectionMode: 'selectionMode',
+    }),
+
     hasSelection() {
-      return this.activeSelection && this.activeSelection.id && this.activeSelection.id !== 'wall-default';
+      return (this.selectedEntitiesFromStore || []).length > 0;
     },
-    
-    selectedEntities() {
-      if (!this.hasSelection) return [];
-      
-      // For now, use the active selection as a single entity
-      // In the future, this could be extended to support multi-selection
-      return [this.activeSelection];
+
+    activeEntity() {
+      return this.primaryEntityFromStore;
     },
-    
+
+    selectedEntitiesList() {
+      return this.selectedEntitiesFromStore || [];
+    },
+
     selectionInfo() {
-      if (!this.hasSelection) return '';
-      
-      if (this.selectedEntities.length === 1) {
-        return `${this.activeSelection.name || '未命名元素'} (${this.getEntityTypeLabel(this.activeSelection.type)})`;
-      } else {
-        return `已选中 ${this.selectedEntities.length} 个元素`;
+      if (!this.hasSelection || !this.activeEntity) {
+        return '';
       }
+
+      if (this.selectedEntitiesList.length === 1) {
+        return `${this.activeEntity.name || '未命名元素'} (${this.getEntityTypeLabel(
+          this.activeEntity.type
+        )})`;
+      }
+      return `已选中 ${this.selectedEntitiesList.length} 个元素`;
     },
   },
   methods: {
