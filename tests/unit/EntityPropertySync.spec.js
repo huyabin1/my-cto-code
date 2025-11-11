@@ -65,10 +65,15 @@ describe('Entity Property Sync Integration', () => {
       },
       getters: {
         'entities/getEntityById': jest.fn((id) => 
-          id === 'wall-1' ? { ...entity } : null
+          id === 'wall-1' ? mockStore.state.entities.entities[0] : null
         ),
       },
-      dispatch: jest.fn(),
+      dispatch: jest.fn((action, payload) => {
+        if (action === 'entities/updateEntity' && payload.id === 'wall-1') {
+          Object.assign(mockStore.state.entities.entities[0], payload.updates);
+          Object.assign(mockStore.state.entities.indexes.byId.get('wall-1'), payload.updates);
+        }
+      }),
       commit: jest.fn(),
     };
 
@@ -270,7 +275,7 @@ describe('Entity Property Sync Integration', () => {
 
       // Verify the merged command has the latest value
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.state.entities.entities[0].height).toBe(2.8);
     });
   });
 
@@ -314,7 +319,7 @@ describe('Entity Property Sync Integration', () => {
 
       // Execute 10 commands
       for (let i = 0; i < 10; i++) {
-        mockStore.state.editor.entities[0].height = 2.8 + (i - 1) * 0.1;
+        mockStore.state.entities.entities[0].height = 2.8 + (i - 1) * 0.1;
         const command = new UpdateEntityPropertyCommand(
           mockStore,
           'wall-1',
@@ -349,11 +354,11 @@ describe('Entity Property Sync Integration', () => {
 
       // Should still work even with missing Three.js object
       await commandStack.execute(command);
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.state.entities.entities[0].height).toBe(3.0);
     });
 
     it('should throw error when entity not found during command creation', () => {
-      mockStore.state.editor.entities = [];
+      mockStore.getters['entities/getEntityById'].mockReturnValue(null);
 
       // Should throw error during construction
       expect(() => {

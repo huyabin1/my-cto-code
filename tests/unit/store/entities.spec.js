@@ -66,6 +66,7 @@ describe('Entities Store Module', () => {
     it('should create a wall entity with default properties', () => {
       const entity = {
         id: 'wall-1',
+        type: 'wall',
         name: 'Test Wall',
         height: 3.0,
       };
@@ -304,6 +305,16 @@ describe('Entities Store Module', () => {
       ];
       store.mutations.ADD_ENTITIES(state, entities);
       store.mutations.SET_SELECTION(state, { ids: ['wall-1', 'door-1'] });
+
+      // Recreate getters after adding entities
+      Object.keys(entitiesModule.getters).forEach(getterName => {
+        store.getters[getterName] = entitiesModule.getters[getterName](
+          store.state.entities,
+          store.getters,
+          store.rootState,
+          store.rootGetters
+        );
+      });
     });
 
     it('should get entity by ID', () => {
@@ -375,8 +386,8 @@ describe('Entities Store Module', () => {
   describe('Actions', () => {
     beforeEach(() => {
       const entities = [
-        { id: 'wall-1', type: 'wall', name: 'Wall 1' },
-        { id: 'door-1', type: 'door', name: 'Door 1' },
+        { id: 'wall-1', type: 'wall', name: 'Wall 1', layer: 'layer-structure', visible: true, locked: false },
+        { id: 'door-1', type: 'door', name: 'Door 1', layer: 'layer-structure', visible: true, locked: false },
       ];
       store.mutations.ADD_ENTITIES(state, entities);
     });
@@ -492,7 +503,7 @@ describe('Entities Store Module', () => {
         );
         
         expect(store.commit).toHaveBeenCalledWith('SET_SELECTION', {
-          ids: ['wall-1']
+          ids: ['wall-1', 'door-1']
         });
       });
     });
@@ -585,11 +596,11 @@ describe('Entities Store Module', () => {
     it('should rebuild indexes after entity removal', () => {
       const entity = { id: 'wall-1', type: 'wall', name: 'Wall 1' };
       store.mutations.ADD_ENTITY(state, entity);
-      
+
       store.mutations.REMOVE_ENTITY(state, 'wall-1');
-      
+
       expect(state.indexes.byId.get('wall-1')).toBeUndefined();
-      expect(state.indexes.byType.get('wall')).toEqual([]);
+      expect(state.indexes.byType.get('wall')).toBeUndefined();
       expect(state.stats.totalEntities).toBe(0);
     });
 

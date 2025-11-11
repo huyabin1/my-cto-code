@@ -57,11 +57,19 @@ describe('UpdateEntityPropertyCommand', () => {
         },
       },
       getters: {
-        'entities/getEntityById': jest.fn((id) => 
-          id === 'wall-1' ? { ...entity } : null
-        ),
+        'entities/getEntityById': jest.fn((id) => {
+          const entity = mockStore.state.entities.entities.find(e => e.id === id);
+          return entity || null;
+        }),
       },
-      dispatch: jest.fn(),
+      dispatch: jest.fn((action, payload) => {
+        if (action === 'entities/updateEntity') {
+          const entity = mockStore.state.entities.entities.find(e => e.id === payload.id);
+          if (entity) {
+            Object.assign(entity, payload.updates);
+          }
+        }
+      }),
       commit: jest.fn(),
     };
 
@@ -204,7 +212,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
     it('should handle material property updates', async () => {
       entity.material = 'concrete';
-      mockStore.state.editor.entities[0] = { ...entity };
+      mockStore.state.entities.entities[0] = { ...entity };
 
       const command = new UpdateEntityPropertyCommand(
         mockStore,
@@ -217,7 +225,7 @@ describe('UpdateEntityPropertyCommand', () => {
       await command.execute();
 
       expect(WallFactory.update).toHaveBeenCalledWith(mockWall, { material: 'wood' });
-      expect(mockStore.state.editor.entities[0].material).toBe('wood');
+      expect(mockStore.state.entities.entities[0].material).toBe('wood');
     });
 
     it('should handle thickness property updates', async () => {
@@ -232,7 +240,7 @@ describe('UpdateEntityPropertyCommand', () => {
       await command.execute();
 
       expect(WallFactory.update).toHaveBeenCalledWith(mockWall, { thickness: 0.3 });
-      expect(mockStore.state.editor.entities[0].thickness).toBe(0.3);
+      expect(mockStore.state.entities.entities[0].thickness).toBe(0.3);
     });
 
     it('should handle color property updates', async () => {
@@ -263,7 +271,7 @@ describe('UpdateEntityPropertyCommand', () => {
       await command.execute();
       const result = await command.undo();
 
-      const updatedEntity = mockStore.state.editor.entities[0];
+      const updatedEntity = mockStore.state.entities.entities[0];
       expect(updatedEntity.height).toBe(2.8);
       expect(result).toBe(2.8);
     });
@@ -353,7 +361,7 @@ describe('UpdateEntityPropertyCommand', () => {
     it('should not merge commands for different entities', () => {
       // Add another entity
       const entity2 = { ...entity, id: 'wall-2' };
-      mockStore.state.editor.entities.push(entity2);
+      mockStore.state.entities.entities.push(entity2);
 
       const command1 = new UpdateEntityPropertyCommand(
         mockStore,
@@ -405,7 +413,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
       // Should not throw, just update store
       await expect(command.execute()).resolves.toBe(3.0);
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.state.entities.entities[0].height).toBe(3.0);
     });
 
     it('should handle WallFactory.update errors gracefully', async () => {
@@ -423,7 +431,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
       // Should still complete despite factory error
       await expect(command.execute()).resolves.toBe(3.0);
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.state.entities.entities[0].height).toBe(3.0);
     });
 
     it('should handle entity not found on execute', async () => {
@@ -436,7 +444,7 @@ describe('UpdateEntityPropertyCommand', () => {
       );
 
       // Remove entity after command creation
-      mockStore.state.editor.entities = [];
+      mockStore.state.entities.entities = [];
 
       await expect(command.execute()).rejects.toThrow('Entity wall-1 not found');
     });
@@ -448,7 +456,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
       for (const prop of properties) {
         WallFactory.update.mockClear();
-        mockStore.state.editor.entities[0][prop] = 'old-value';
+        mockStore.state.entities.entities[0][prop] = 'old-value';
 
         const command = new UpdateEntityPropertyCommand(
           mockStore,
@@ -520,7 +528,7 @@ describe('UpdateEntityPropertyCommand', () => {
         material: 'brick',
       };
 
-      mockStore.state.editor.entities.push(entity2);
+      mockStore.state.entities.entities.push(entity2);
 
       const command = new UpdateEntityPropertyCommand(
         mockStore,
@@ -538,9 +546,9 @@ describe('UpdateEntityPropertyCommand', () => {
       await command.execute();
 
       // First entity should remain unchanged
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.state.entities.entities[0].height).toBe(2.8);
       // Second entity should be updated
-      expect(mockStore.state.editor.entities[1].height).toBe(3.5);
+      expect(mockStore.state.entities.entities[1].height).toBe(3.5);
     });
   });
 });

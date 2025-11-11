@@ -128,21 +128,12 @@ function createEntity(type, properties = {}) {
     updatedAt: Date.now(),
     ...defaults,
     ...properties,
-    // Remove reserved properties from custom properties
-    id: undefined,
-    type: undefined,
-    name: undefined,
-    visible: undefined,
-    locked: undefined,
-    layer: undefined,
-    createdAt: undefined,
-    updatedAt: undefined,
   };
 
-  // Restore reserved properties
+  // Ensure reserved properties take precedence
   entity.id = properties.id || generateId();
   entity.type = type;
-  entity.name = entity.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${Date.now()}`;
+  entity.name = properties.name || entity.name;
   entity.visible = properties.visible !== undefined ? properties.visible : true;
   entity.locked = properties.locked !== undefined ? properties.locked : false;
   entity.layer = properties.layer || defaults.layer || 'default';
@@ -292,7 +283,7 @@ export default {
     },
     
     UPDATE_ENTITIES(state, updates) {
-      updates.forEach(({ id, ...entityUpdates }) => {
+      updates.forEach(({ id, updates: entityUpdates }) => {
         const entity = state.indexes.byId.get(id);
         if (entity) {
           Object.assign(entity, entityUpdates, { updatedAt: Date.now() });
@@ -533,7 +524,7 @@ export default {
     },
     
     // Visibility actions
-    async toggleEntityVisibility({ commit }, id) {
+    async toggleEntityVisibility({ commit, getters }, id) {
       const entity = getters.getEntityById(id);
       if (entity) {
         commit('UPDATE_ENTITY', { 
@@ -549,7 +540,7 @@ export default {
     },
     
     // Lock actions
-    async toggleEntityLock({ commit }, id) {
+    async toggleEntityLock({ commit, getters }, id) {
       const entity = getters.getEntityById(id);
       if (entity) {
         commit('UPDATE_ENTITY', { 
