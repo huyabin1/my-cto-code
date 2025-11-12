@@ -1,6 +1,14 @@
 <template>
   <div class="editor-layout">
-    <aside class="editor-sidebar">
+    <EditorToolbar
+      @new-project="handleNewProject"
+      @open-project="handleOpenProject"
+      @save-project="handleSaveProject"
+      @undo="handleUndo"
+      @redo="handleRedo"
+    />
+    <div class="editor-main">
+      <aside class="editor-sidebar">
       <div class="sidebar-content">
         <header class="sidebar-header">
           <div class="header-text">
@@ -79,7 +87,11 @@
 
         <SnappingPanel />
 
-        <section class="sidebar-block">
+        <section
+          ref="layerSection"
+          class="sidebar-block"
+          :class="{ 'panel-highlight': highlightedSections.layers }"
+        >
           <header class="block-header">
             <h2>图层可见性</h2>
           </header>
@@ -109,30 +121,42 @@
 
         <MeasurementPanel />
 
-        <ObjectExplorer />
+        <div
+          ref="objectExplorerSection"
+          :class="{ 'panel-highlight': highlightedSections.objects }"
+        >
+          <ObjectExplorer />
+        </div>
 
         <PropertyPanel />
 
         <UndoRedoPanel />
 
-        <ProjectPanel />
+        <ProjectPanel ref="projectPanel" />
       </div>
     </aside>
 
-    <main class="editor-canvas" :class="canvasLayoutClass">
-      <FloorplanViewport
-        v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
-        ref="floorplanViewport"
-        class="canvas-scene"
-        :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
-      />
-      <PreviewViewport
-        v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
-        ref="previewViewport"
-        class="canvas-scene preview-scene"
-        :class="previewViewportClass"
-      />
-    </main>
+      <main class="editor-canvas" :class="canvasLayoutClass">
+        <ToolPalette
+          :layer-panel-active="highlightedSections.layers"
+          :object-explorer-active="highlightedSections.objects"
+          @toggle-layer-panel="handleToggleLayerPanel"
+          @toggle-object-explorer="handleToggleObjectExplorer"
+        />
+        <FloorplanViewport
+          v-if="viewModeModel === '2d' || viewModeModel === 'sync'"
+          ref="floorplanViewport"
+          class="canvas-scene"
+          :class="{ 'split-view': viewModeModel === 'sync' && layoutModeModel === 'split' }"
+        />
+        <PreviewViewport
+          v-if="viewModeModel === '3d' || viewModeModel === 'sync'"
+          ref="previewViewport"
+          class="canvas-scene preview-scene"
+          :class="previewViewportClass"
+        />
+      </main>
+    </div>
   </div>
 </template>
 
@@ -147,6 +171,8 @@ import MeasurementPanel from './MeasurementPanel';
 import UndoRedoPanel from './UndoRedoPanel';
 import ProjectPanel from './ProjectPanel';
 import ObjectExplorer from './panels/ObjectExplorer';
+import EditorToolbar from './tooling/EditorToolbar';
+import ToolPalette from './tooling/ToolPalette';
 
 export default {
   name: 'EditorLayout',
@@ -159,6 +185,17 @@ export default {
     UndoRedoPanel,
     ProjectPanel,
     ObjectExplorer,
+    EditorToolbar,
+    ToolPalette,
+  },
+  data() {
+    return {
+      highlightedSections: {
+        layers: false,
+        objects: false,
+      },
+      highlightTimers: {}
+    };
   },
   computed: {
     ...mapState('editor', {
@@ -427,6 +464,80 @@ export default {
         this.$store.commit('editor/SET_ENTITIES', internalEntities);
       }
     },
+    handleNewProject() {
+      const projectPanel = this.$refs.projectPanel;
+      if (projectPanel && projectPanel.createNewProject) {
+        projectPanel.createNewProject();
+      }
+    },
+    handleOpenProject() {
+      const projectPanel = this.$refs.projectPanel;
+      if (projectPanel && projectPanel.triggerLoadProject) {
+        projectPanel.triggerLoadProject();
+      }
+    },
+    handleSaveProject() {
+      const projectPanel = this.$refs.projectPanel;
+      if (projectPanel && projectPanel.saveProject) {
+        projectPanel.saveProject();
+      }
+    },
+    handleUndo() {
+      const { floorplanViewport } = this.$refs;
+      if (floorplanViewport && floorplanViewport.getToolController) {
+        const toolController = floorplanViewport.getToolController();
+        if (toolController) {
+          toolController.undo();
+        }
+      }
+    },
+    handleRedo() {
+      const { floorplanViewport } = this.$refs;
+      if (floorplanViewport && floorplanViewport.getToolController) {
+        const toolController = floorplanViewport.getToolController();
+        if (toolController) {
+          toolController.redo();
+        }
+      }
+    },
+    handleToggleLayerPanel(show) {
+      this.highlightedSections.layers = show;
+      if (show) {
+        this.scrollIntoView(this.$refs.layerSection);
+      }
+      this.scheduleHighlightReset('layers', show);
+    },
+    handleToggleObjectExplorer(show) {
+      this.highlightedSections.objects = show;
+      if (show) {
+        this.scrollIntoView(this.$refs.objectExplorerSection);
+      }
+      this.scheduleHighlightReset('objects', show);
+    },
+    scheduleHighlightReset(section, active) {
+      if (this.highlightTimers[section]) {
+        clearTimeout(this.highlightTimers[section]);
+        this.highlightTimers[section] = null;
+      }
+      if (active) {
+        this.highlightTimers[section] = setTimeout(() => {
+          this.highlightedSections[section] = false;
+          this.highlightTimers[section] = null;
+        }, 3000);
+      }
+    },
+    scrollIntoView(element) {
+      if (element && typeof element.scrollIntoView === 'function') {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+  },
+  beforeDestroy() {
+    Object.values(this.highlightTimers).forEach((timer) => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    });
   },
 };
 </script>
@@ -434,9 +545,16 @@ export default {
 <style scoped>
 .editor-layout {
   display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   background-color: #f3f4f6;
+}
+
+.editor-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
 .editor-sidebar {
@@ -531,6 +649,17 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.panel-highlight {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
+}
+
+.panel-highlight .sidebar-block,
+.panel-highlight .object-explorer {
+  border-radius: 8px;
 }
 
 .slider-wrapper {
