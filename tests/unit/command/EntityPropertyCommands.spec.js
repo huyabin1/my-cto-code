@@ -72,13 +72,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
   describe('Constructor', () => {
     it('should create command with provided values', () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       expect(command.entityId).toBe('wall-1');
       expect(command.property).toBe('height');
@@ -87,12 +81,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should get old value from entity if not provided', () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0);
 
       expect(command.oldValue).toBe(2.8);
     });
@@ -106,13 +95,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should generate proper description', () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       expect(command.getDescription()).toContain('更新实体wall-1.height');
       expect(command.getDescription()).toContain('2.8');
@@ -120,23 +103,13 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should generate unique ID', () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0);
 
       const id1 = command1.getId();
       expect(id1).toContain('update_entity_property_wall-1_height');
 
       // Use small delay to ensure different timestamps
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0);
 
       const id2 = command2.getId();
       expect(id2).toContain('update_entity_property_wall-1_height');
@@ -145,13 +118,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
   describe('execute', () => {
     it('should update entity property in store', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       const result = await command.execute();
 
@@ -161,13 +128,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should call WallFactory.update for wall entities', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       await command.execute();
 
@@ -175,13 +136,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should update SceneGraph after property change', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       await command.execute();
 
@@ -209,13 +164,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should handle thickness property updates', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'thickness',
-        0.3,
-        0.2
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'thickness', 0.3, 0.2);
 
       await command.execute();
 
@@ -240,13 +189,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
   describe('undo', () => {
     it('should revert property to old value', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       await command.execute();
       const result = await command.undo();
@@ -274,13 +217,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should update SceneGraph with old value on undo', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       await command.execute();
       mockSceneGraph.updateEntity.mockClear();
@@ -295,21 +232,9 @@ describe('UpdateEntityPropertyCommand', () => {
 
   describe('merge', () => {
     it('should merge compatible commands', () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.5,
-        3.0
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.5, 3.0);
 
       expect(command1.canMerge(command2)).toBe(true);
 
@@ -319,21 +244,9 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should not merge commands for different properties', () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'thickness',
-        0.3,
-        0.2
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'thickness', 0.3, 0.2);
 
       expect(command1.canMerge(command2)).toBe(false);
     });
@@ -343,33 +256,15 @@ describe('UpdateEntityPropertyCommand', () => {
       const entity2 = { ...entity, id: 'wall-2' };
       mockStore.state.editor.entities.push(entity2);
 
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-2',
-        'height',
-        3.0,
-        2.8
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-2', 'height', 3.0, 2.8);
 
       expect(command1.canMerge(command2)).toBe(false);
     });
 
     it('should not merge with non-UpdateEntityPropertyCommand', () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       const otherCommand = {
         canMerge: () => false,
@@ -383,13 +278,7 @@ describe('UpdateEntityPropertyCommand', () => {
     it('should handle missing Three.js object gracefully', async () => {
       mockSceneGraph.getEntity.mockReturnValue(null);
 
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       // Should not throw, just update store
       await expect(command.execute()).resolves.toBe(3.0);
@@ -401,13 +290,7 @@ describe('UpdateEntityPropertyCommand', () => {
         throw new Error('Factory error');
       });
 
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       // Should still complete despite factory error
       await expect(command.execute()).resolves.toBe(3.0);
@@ -415,13 +298,7 @@ describe('UpdateEntityPropertyCommand', () => {
     });
 
     it('should handle entity not found on execute', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       // Remove entity after command creation
       mockStore.state.editor.entities = [];
@@ -484,13 +361,7 @@ describe('UpdateEntityPropertyCommand', () => {
         entity: entity,
       });
 
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       await command.execute();
 
@@ -510,13 +381,7 @@ describe('UpdateEntityPropertyCommand', () => {
 
       mockStore.state.editor.entities.push(entity2);
 
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-2',
-        'height',
-        3.5,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-2', 'height', 3.5, 2.8);
 
       mockSceneGraph.getEntity.mockReturnValue({
         threeObject: mockWall,

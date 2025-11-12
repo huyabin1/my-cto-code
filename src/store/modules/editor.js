@@ -71,10 +71,6 @@ export default {
     lastAutoSave: null,
     entities: [],
     selection: createDefaultSelectionState(),
-    viewport: {
-      viewMode: '2d', // '2d' | '3d' | 'sync'
-      layoutMode: 'single', // 'single' | 'split' | 'floating'
-    },
     commandStack: null, // Reference to CommandStack instance
   }),
   getters: {
@@ -178,12 +174,6 @@ export default {
     },
     SET_ENTITIES(state, entities) {
       state.entities = entities;
-    },
-    SET_VIEW_MODE(state, mode) {
-      state.viewport.viewMode = mode;
-    },
-    SET_LAYOUT_MODE(state, mode) {
-      state.viewport.layoutMode = mode;
     },
     ADD_ENTITY(state, entity) {
       if (!state.entities.find((e) => e.id === entity.id)) {
@@ -341,12 +331,6 @@ export default {
     setLastAutoSave({ commit }, timestamp) {
       commit('SET_LAST_AUTO_SAVE', timestamp);
     },
-    setViewMode({ commit }, mode) {
-      commit('SET_VIEW_MODE', mode);
-    },
-    setLayoutMode({ commit }, mode) {
-      commit('SET_LAYOUT_MODE', mode);
-    },
     addEntity({ commit }, entity) {
       commit('ADD_ENTITY', entity);
     },
@@ -361,15 +345,11 @@ export default {
         throw new Error('CommandStack not initialized');
       }
 
-      const { UpdateEntityPropertyCommand } = await import('@/three/command/EntityPropertyCommands');
-
-      const command = new UpdateEntityPropertyCommand(
-        this,
-        entityId,
-        property,
-        newValue,
-        oldValue
+      const { UpdateEntityPropertyCommand } = await import(
+        '@/three/command/EntityPropertyCommands'
       );
+
+      const command = new UpdateEntityPropertyCommand(this, entityId, property, newValue, oldValue);
 
       try {
         await state.commandStack.execute(command);

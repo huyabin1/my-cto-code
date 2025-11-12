@@ -147,7 +147,7 @@ describe('EditorLayout.vue - Viewport Integration', () => {
 
     it('should update store when view mode changes', async () => {
       const setViewModeSpy = jest.spyOn(store, 'dispatch');
-      
+
       wrapper.vm.viewModeModel = '3d';
 
       expect(setViewModeSpy).toHaveBeenCalledWith('editor/setViewMode', '3d');

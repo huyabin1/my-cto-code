@@ -360,23 +360,23 @@ class MeshRegistry {
    * @returns {Array<Object>} 网格数据数组
    */
   exportMeshData() {
-      const meshData = [];
+    const meshData = [];
 
-      this.meshes.forEach((mesh, id) => {
-        const data = {
-          id,
-          type: mesh.userData.type,
-          config: mesh.userData.config,
-          visible: mesh.visible,
-          position: mesh.position.toArray(),
-          rotation: mesh.rotation.toArray(),
-          scale: mesh.scale.toArray(),
-        };
-        meshData.push(data);
-      });
+    this.meshes.forEach((mesh, id) => {
+      const data = {
+        id,
+        type: mesh.userData.type,
+        config: mesh.userData.config,
+        visible: mesh.visible,
+        position: mesh.position.toArray(),
+        rotation: mesh.rotation.toArray(),
+        scale: mesh.scale.toArray(),
+      };
+      meshData.push(data);
+    });
 
-      return meshData;
-    }
+    return meshData;
+  }
 
   /**
    * 导入网格数据

@@ -233,7 +233,7 @@ describe('PropertyPanel', () => {
 
     it('should handle field change events', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       const event = {
         field: 'material',
         value: 'brick',
@@ -242,15 +242,15 @@ describe('PropertyPanel', () => {
       };
 
       wrapper.vm.handleFieldChange(event);
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('Property field changed:', event);
-      
+
       consoleSpy.mockRestore();
     });
 
     it('should handle field blur events', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       const event = {
         field: 'material',
         value: 'brick',
@@ -259,9 +259,9 @@ describe('PropertyPanel', () => {
       };
 
       wrapper.vm.handleFieldBlur(event);
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('Property field blurred:', event);
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -274,7 +274,7 @@ describe('PropertyPanel', () => {
       });
 
       const propertyRenderer = wrapper.findComponent({ name: 'PropertyRenderer' });
-      
+
       expect(propertyRenderer.props('entity')).toEqual(store.state.editor.entities[0]);
       expect(propertyRenderer.props('selectedEntities')).toEqual([store.state.editor.entities[0]]);
     });
@@ -286,7 +286,7 @@ describe('PropertyPanel', () => {
       });
 
       const propertyRenderer = wrapper.findComponent({ name: 'PropertyRenderer' });
-      
+
       const selectedEntity = store.state.editor.entities[0];
 
       const changeEvent = {

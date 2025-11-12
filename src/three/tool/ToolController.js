@@ -126,9 +126,7 @@ class ToolController {
       const groundPoint = this.getGroundPoint();
       if (groundPoint) {
         // Convert ground point (x, y, z) to 2D point (x, y) for tool
-        this.drawWallTool.startDrawing(
-          new THREE.Vector2(groundPoint.x, groundPoint.z)
-        );
+        this.drawWallTool.startDrawing(new THREE.Vector2(groundPoint.x, groundPoint.z));
       }
     }
   }
@@ -143,9 +141,7 @@ class ToolController {
       const groundPoint = this.getGroundPoint();
       if (groundPoint) {
         // Convert ground point (x, y, z) to 2D point (x, y) for tool
-        this.drawWallTool.updateDrawing(
-          new THREE.Vector2(groundPoint.x, groundPoint.z)
-        );
+        this.drawWallTool.updateDrawing(new THREE.Vector2(groundPoint.x, groundPoint.z));
       }
     }
   }
@@ -160,9 +156,7 @@ class ToolController {
       const groundPoint = this.getGroundPoint();
       if (groundPoint) {
         // Convert ground point (x, y, z) to 2D point (x, y) for tool
-        this.drawWallTool.finishDrawing(
-          new THREE.Vector2(groundPoint.x, groundPoint.z)
-        );
+        this.drawWallTool.finishDrawing(new THREE.Vector2(groundPoint.x, groundPoint.z));
       }
     }
   }

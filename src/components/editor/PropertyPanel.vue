@@ -5,9 +5,7 @@
       <span v-if="hasSelection" class="property-subtitle">
         {{ selectionInfo }}
       </span>
-      <span v-else class="property-subtitle">
-        未选中任何元素
-      </span>
+      <span v-else class="property-subtitle"> 未选中任何元素 </span>
     </header>
 
     <div v-if="!hasSelection" class="no-selection">
@@ -72,7 +70,7 @@ export default {
   },
   methods: {
     ...mapActions('editor', ['setActiveMaterial', 'setActiveColor']),
-    
+
     /**
      * Get a human-readable label for entity type
      */
@@ -85,27 +83,27 @@ export default {
       };
       return typeLabels[type] || type || '未知';
     },
-    
+
     /**
      * Handle field change events from PropertyRenderer
      */
     handleFieldChange(event) {
       // Log field changes for debugging
       console.log('Property field changed:', event);
-      
+
       // You can add additional logic here, such as:
       // - Analytics tracking
       // - Custom validation
       // - Side effects
     },
-    
+
     /**
      * Handle field blur events from PropertyRenderer
      */
     handleFieldBlur(event) {
       // Log field blur events for debugging
       console.log('Property field blurred:', event);
-      
+
       // You can add additional logic here, such as:
       // - Auto-save triggers
       // - Validation on blur

@@ -139,7 +139,11 @@ export default class SelectionManager {
       }
     }
 
-    const mode = this.pointerModifier.toggle ? 'toggle' : this.pointerModifier.add ? 'add' : 'replace';
+    const mode = this.pointerModifier.toggle
+      ? 'toggle'
+      : this.pointerModifier.add
+      ? 'add'
+      : 'replace';
 
     if (entityId) {
       const selection = await this.store.dispatch('editor/setSelection', {
@@ -157,7 +161,11 @@ export default class SelectionManager {
 
   async applyMarqueeSelection() {
     const ids = this.computeMarqueeIds();
-    const mode = this.pointerModifier.toggle ? 'toggle' : this.pointerModifier.add ? 'add' : 'replace';
+    const mode = this.pointerModifier.toggle
+      ? 'toggle'
+      : this.pointerModifier.add
+      ? 'add'
+      : 'replace';
 
     const selection = await this.store.dispatch('editor/setSelection', {
       ids,
@@ -213,7 +221,12 @@ export default class SelectionManager {
       for (let i = 0; i < corners.length; i += 1) {
         corners[i].set(points[i][0], points[i][1], points[i][2]);
         projected.copy(corners[i]).project(this.camera);
-        if (projected.x >= minX && projected.x <= maxX && projected.y >= minY && projected.y <= maxY) {
+        if (
+          projected.x >= minX &&
+          projected.x <= maxX &&
+          projected.y >= minY &&
+          projected.y <= maxY
+        ) {
           inside = true;
           break;
         }
