@@ -9,132 +9,137 @@
     />
     <div class="editor-main">
       <aside class="editor-sidebar">
-      <div class="sidebar-content">
-        <header class="sidebar-header">
-          <div class="header-text">
-            <h1>空间编辑器</h1>
-            <span class="header-subtitle">组装 CAD 数据并开始绘制墙体</span>
-          </div>
-          <el-select v-model="selectedUnitModel" size="mini" class="unit-select">
-            <el-option
-              v-for="option in unitOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </header>
-
-        <section class="sidebar-block">
-          <header class="block-header">
-            <h2>视图模式</h2>
+        <div class="sidebar-content">
+          <header class="sidebar-header">
+            <div class="header-text">
+              <h1>空间编辑器</h1>
+              <span class="header-subtitle">组装 CAD 数据并开始绘制墙体</span>
+            </div>
+            <el-select v-model="selectedUnitModel" size="mini" class="unit-select">
+              <el-option
+                v-for="option in unitOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
           </header>
-          <el-radio-group v-model="viewModeModel" size="small" class="view-mode-group">
-            <el-radio-button label="2d">平面</el-radio-button>
-            <el-radio-button label="3d">3D</el-radio-button>
-            <el-radio-button label="sync">同步</el-radio-button>
-          </el-radio-group>
-          <div v-if="viewModeModel === 'sync'" class="layout-options">
-            <el-radio-group v-model="layoutModeModel" size="mini">
-              <el-radio label="split">分屏</el-radio>
-              <el-radio label="floating">悬浮</el-radio>
+
+          <section class="sidebar-block">
+            <header class="block-header">
+              <h2>视图模式</h2>
+            </header>
+            <el-radio-group v-model="viewModeModel" size="small" class="view-mode-group">
+              <el-radio-button label="2d">平面</el-radio-button>
+              <el-radio-button label="3d">3D</el-radio-button>
+              <el-radio-button label="sync">同步</el-radio-button>
             </el-radio-group>
-          </div>
-        </section>
+            <div v-if="viewModeModel === 'sync'" class="layout-options">
+              <el-radio-group v-model="layoutModeModel" size="mini">
+                <el-radio label="split">分屏</el-radio>
+                <el-radio label="floating">悬浮</el-radio>
+              </el-radio-group>
+            </div>
+          </section>
 
-        <section class="sidebar-block">
-          <header class="block-header">
-            <h2>CAD 导入</h2>
-            <el-tag v-if="importStatus !== 'idle'" :type="statusTagType" size="mini">
-              {{ importStatusText }}
-            </el-tag>
-          </header>
+          <section class="sidebar-block">
+            <header class="block-header">
+              <h2>CAD 导入</h2>
+              <el-tag v-if="importStatus !== 'idle'" :type="statusTagType" size="mini">
+                {{ importStatusText }}
+              </el-tag>
+            </header>
 
-          <div class="dxf-upload">
-            <el-button type="primary" size="small" icon="el-icon-upload" @click="triggerDxfSelect">
-              导入 DXF
-            </el-button>
-            <input
-              ref="dxfInput"
-              type="file"
-              accept=".dxf"
-              class="dxf-input"
-              @change="onDxfFileChange"
-            />
-          </div>
+            <div class="dxf-upload">
+              <el-button
+                type="primary"
+                size="small"
+                icon="el-icon-upload"
+                @click="triggerDxfSelect"
+              >
+                导入 DXF
+              </el-button>
+              <input
+                ref="dxfInput"
+                type="file"
+                accept=".dxf"
+                class="dxf-input"
+                @change="onDxfFileChange"
+              />
+            </div>
 
-          <p v-if="lastImportedFile" class="upload-hint">最新文件：{{ lastImportedFile }}</p>
-          <el-alert
-            v-if="importError"
-            type="error"
-            :closable="false"
-            show-icon
-            class="status-alert"
+            <p v-if="lastImportedFile" class="upload-hint">最新文件：{{ lastImportedFile }}</p>
+            <el-alert
+              v-if="importError"
+              type="error"
+              :closable="false"
+              show-icon
+              class="status-alert"
+            >
+              {{ importError }}
+            </el-alert>
+          </section>
+
+          <section class="sidebar-block">
+            <header class="block-header">
+              <h2>绘制工具</h2>
+            </header>
+            <div class="block-row">
+              <span class="row-label">绘制墙体</span>
+              <el-switch v-model="drawToolModel" active-color="#2563eb" inactive-color="#9ca3af" />
+            </div>
+          </section>
+
+          <SnappingPanel />
+
+          <section
+            ref="layerSection"
+            class="sidebar-block"
+            :class="{ 'panel-highlight': highlightedSections.layers }"
           >
-            {{ importError }}
-          </el-alert>
-        </section>
+            <header class="block-header">
+              <h2>图层可见性</h2>
+            </header>
+            <el-checkbox-group v-model="layerVisibilityModel" class="layer-list">
+              <el-checkbox v-for="layer in layers" :key="layer.id" :label="layer.id">
+                {{ layer.name }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </section>
 
-        <section class="sidebar-block">
-          <header class="block-header">
-            <h2>绘制工具</h2>
-          </header>
-          <div class="block-row">
-            <span class="row-label">绘制墙体</span>
-            <el-switch v-model="drawToolModel" active-color="#2563eb" inactive-color="#9ca3af" />
+          <section class="sidebar-block">
+            <header class="block-header">
+              <h2>CAD 不透明度</h2>
+            </header>
+            <div class="slider-wrapper">
+              <el-slider
+                v-model="cadOpacityModel"
+                :min="0"
+                :max="1"
+                :step="0.05"
+                show-input
+                :show-input-controls="false"
+                input-size="small"
+              />
+            </div>
+          </section>
+
+          <MeasurementPanel />
+
+          <div
+            ref="objectExplorerSection"
+            :class="{ 'panel-highlight': highlightedSections.objects }"
+          >
+            <ObjectExplorer />
           </div>
-        </section>
 
-        <SnappingPanel />
+          <PropertyPanel />
 
-        <section
-          ref="layerSection"
-          class="sidebar-block"
-          :class="{ 'panel-highlight': highlightedSections.layers }"
-        >
-          <header class="block-header">
-            <h2>图层可见性</h2>
-          </header>
-          <el-checkbox-group v-model="layerVisibilityModel" class="layer-list">
-            <el-checkbox v-for="layer in layers" :key="layer.id" :label="layer.id">
-              {{ layer.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </section>
+          <UndoRedoPanel />
 
-        <section class="sidebar-block">
-          <header class="block-header">
-            <h2>CAD 不透明度</h2>
-          </header>
-          <div class="slider-wrapper">
-            <el-slider
-              v-model="cadOpacityModel"
-              :min="0"
-              :max="1"
-              :step="0.05"
-              show-input
-              :show-input-controls="false"
-              input-size="small"
-            />
-          </div>
-        </section>
-
-        <MeasurementPanel />
-
-        <div
-          ref="objectExplorerSection"
-          :class="{ 'panel-highlight': highlightedSections.objects }"
-        >
-          <ObjectExplorer />
+          <ProjectPanel ref="projectPanel" />
         </div>
-
-        <PropertyPanel />
-
-        <UndoRedoPanel />
-
-        <ProjectPanel ref="projectPanel" />
-      </div>
-    </aside>
+      </aside>
 
       <main class="editor-canvas" :class="canvasLayoutClass">
         <ToolPalette
@@ -194,14 +199,16 @@ export default {
         layers: false,
         objects: false,
       },
-      highlightTimers: {}
+      highlightTimers: {},
     };
   },
   computed: {
     ...mapState('editor', {
       drawWallToolEnabled: (state) => state.drawWallToolEnabled,
       snapping: (state) => state.snapping,
-      viewport: (state) => state.viewport,
+    }),
+    ...mapState('viewport', {
+      viewport: (state) => state,
     }),
     ...mapState('cad', {
       layers: (state) => state.layers,
@@ -334,7 +341,8 @@ export default {
     };
   },
   methods: {
-    ...mapActions('editor', ['setDrawWallTool', 'setSnapping', 'setViewMode', 'setLayoutMode']),
+    ...mapActions('editor', ['setDrawWallTool', 'setSnapping']),
+    ...mapActions('viewport', ['setViewMode', 'setLayoutMode']),
     ...mapActions('cad', [
       'startDxfImport',
       'completeDxfImport',

@@ -55,12 +55,12 @@ export class RendererManager {
     const renderer = this.renderers.get(id);
     if (renderer) {
       renderer.dispose();
-      
+
       // Remove canvas from DOM if present
       if (renderer.domElement && renderer.domElement.parentNode) {
         renderer.domElement.parentNode.removeChild(renderer.domElement);
       }
-      
+
       this.renderers.delete(id);
       return true;
     }

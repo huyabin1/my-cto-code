@@ -108,8 +108,15 @@ describe('TransformEntityCommand', () => {
     resetSharedSceneGraph();
     const emptySceneGraph = getSharedSceneGraph();
 
-    expect(() =>
-      new TransformEntityCommand(missingStore, 'missing-entity', {}, {}, { sceneGraph: emptySceneGraph })
+    expect(
+      () =>
+        new TransformEntityCommand(
+          missingStore,
+          'missing-entity',
+          {},
+          {},
+          { sceneGraph: emptySceneGraph }
+        )
     ).toThrow('Entity missing-entity not found');
   });
 });

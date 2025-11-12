@@ -1,12 +1,7 @@
 <template>
   <div class="property-field">
     <label class="field-label" :for="fieldId">{{ field.label }}</label>
-    <el-checkbox
-      :id="fieldId"
-      v-model="localValue"
-      :disabled="disabled"
-      @change="handleChange"
-    >
+    <el-checkbox :id="fieldId" v-model="localValue" :disabled="disabled" @change="handleChange">
       {{ field.checkboxLabel || field.label }}
     </el-checkbox>
     <div v-if="errorMessage" class="field-error">{{ errorMessage }}</div>

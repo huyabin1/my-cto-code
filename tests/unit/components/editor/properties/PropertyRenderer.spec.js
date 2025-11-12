@@ -151,7 +151,7 @@ describe('PropertyRenderer', () => {
   describe('Multi-select Mode', () => {
     it('should show multi-select info when multiple entities selected', () => {
       const wall2 = { ...wallEntity, id: 'wall-2', name: '墙体 A2' };
-      
+
       wrapper = shallowMount(PropertyRenderer, {
         localVue,
         store: mockStore,
@@ -167,7 +167,7 @@ describe('PropertyRenderer', () => {
 
     it('should aggregate values for multi-select', () => {
       const wall2 = { ...wallEntity, id: 'wall-2', material: 'brick' };
-      
+
       wrapper = shallowMount(PropertyRenderer, {
         localVue,
         store: mockStore,
@@ -178,19 +178,19 @@ describe('PropertyRenderer', () => {
       });
 
       // For material field, values are different, so should return null
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
       const materialValue = wrapper.vm.getFieldValue(materialField);
       expect(materialValue).toBeNull();
 
       // For color field, values are same, so should return the value
-      const colorField = getSchema('wall').fields.find(f => f.key === 'color');
+      const colorField = getSchema('wall').fields.find((f) => f.key === 'color');
       const colorValue = wrapper.vm.getFieldValue(colorField);
       expect(colorValue).toBe('#ffffff');
     });
 
     it('should disable fields with different values in multi-select', () => {
       const wall2 = { ...wallEntity, id: 'wall-2', material: 'brick' };
-      
+
       wrapper = shallowMount(PropertyRenderer, {
         localVue,
         store: mockStore,
@@ -201,11 +201,11 @@ describe('PropertyRenderer', () => {
       });
 
       // Material field should be disabled (different values)
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
       expect(wrapper.vm.canEditField(materialField)).toBe(false);
 
       // Color field should be enabled (same values)
-      const colorField = getSchema('wall').fields.find(f => f.key === 'color');
+      const colorField = getSchema('wall').fields.find((f) => f.key === 'color');
       expect(wrapper.vm.canEditField(colorField)).toBe(true);
     });
   });
@@ -223,7 +223,7 @@ describe('PropertyRenderer', () => {
     });
 
     it('should get field value correctly', () => {
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
       const value = wrapper.vm.getFieldValue(materialField);
       expect(value).toBe('concrete');
     });
@@ -235,7 +235,7 @@ describe('PropertyRenderer', () => {
         type: 'text',
         default: '默认值',
       };
-      
+
       const value = wrapper.vm.getFieldValue(fieldWithDefault);
       expect(value).toBe('默认值');
     });
@@ -254,10 +254,10 @@ describe('PropertyRenderer', () => {
     });
 
     it('should handle field input for single entity', async () => {
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
-      
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
+
       await wrapper.vm.handleFieldInput(materialField, 'brick');
-      
+
       expect(mockStore.dispatch).toHaveBeenCalledWith('editor/updateProperties', {
         entityId: 'wall-1',
         property: 'material',
@@ -269,11 +269,11 @@ describe('PropertyRenderer', () => {
     it('should handle field input for multiple entities', async () => {
       const wall2 = { ...wallEntity, id: 'wall-2' };
       wrapper.setProps({ selectedEntities: [wallEntity, wall2] });
-      
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
-      
+
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
+
       await wrapper.vm.handleFieldInput(materialField, 'brick');
-      
+
       expect(mockStore.dispatch).toHaveBeenCalledTimes(2);
       expect(mockStore.dispatch).toHaveBeenNthCalledWith(1, 'editor/updateProperties', {
         entityId: 'wall-1',
@@ -290,31 +290,35 @@ describe('PropertyRenderer', () => {
     });
 
     it('should emit field-change event', () => {
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
-      
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
+
       wrapper.vm.handleFieldChange(materialField, 'brick');
-      
+
       expect(wrapper.emitted('field-change')).toBeTruthy();
-      expect(wrapper.emitted('field-change')[0]).toEqual([{
-        field: 'material',
-        value: 'brick',
-        entity: wallEntity,
-        entities: [wallEntity],
-      }]);
+      expect(wrapper.emitted('field-change')[0]).toEqual([
+        {
+          field: 'material',
+          value: 'brick',
+          entity: wallEntity,
+          entities: [wallEntity],
+        },
+      ]);
     });
 
     it('should emit field-blur event', () => {
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
-      
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
+
       wrapper.vm.handleFieldBlur(materialField, 'brick');
-      
+
       expect(wrapper.emitted('field-blur')).toBeTruthy();
-      expect(wrapper.emitted('field-blur')[0]).toEqual([{
-        field: 'material',
-        value: 'brick',
-        entity: wallEntity,
-        entities: [wallEntity],
-      }]);
+      expect(wrapper.emitted('field-blur')[0]).toEqual([
+        {
+          field: 'material',
+          value: 'brick',
+          entity: wallEntity,
+          entities: [wallEntity],
+        },
+      ]);
     });
   });
 
@@ -350,8 +354,8 @@ describe('PropertyRenderer', () => {
         },
       });
 
-      const materialField = getSchema('wall').fields.find(f => f.key === 'material');
-      
+      const materialField = getSchema('wall').fields.find((f) => f.key === 'material');
+
       try {
         await wrapper.vm.updateEntityProperty('wall-1', 'material', 'brick');
       } catch (error) {

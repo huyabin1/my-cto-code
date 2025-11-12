@@ -22,10 +22,7 @@ describe('DrawWallTool', () => {
         id: 'test-wall-id',
         config,
       };
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial()
-      );
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
       group.add(mesh);
       return group;
     });
@@ -346,9 +343,7 @@ describe('DrawWallTool', () => {
     });
 
     it('should allow chaining callback setters', () => {
-      const tool = drawWallTool
-        .onStateChangeCallback(() => {})
-        .onWallCreatedCallback(() => {});
+      const tool = drawWallTool.onStateChangeCallback(() => {}).onWallCreatedCallback(() => {});
 
       expect(tool).toBe(drawWallTool);
     });

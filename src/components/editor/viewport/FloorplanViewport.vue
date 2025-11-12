@@ -26,6 +26,7 @@ export default {
       transformGizmo: null,
       unwatchSelection: null,
       unwatchSnapping: null,
+      unwatchViewport: null,
       frustumSize: 60,
     };
   },
@@ -37,6 +38,7 @@ export default {
     this.initTransformGizmo();
     this.watchSelection();
     this.watchSnapping();
+    this.watchViewport();
     this.animate();
     window.addEventListener('resize', this.handleResize);
   },
@@ -80,6 +82,8 @@ export default {
 
       const grid = new THREE.GridHelper(200, 100, 0xd1d5db, 0xe5e7eb);
       grid.rotation.x = Math.PI / 2;
+      grid.visible = this.store.state.viewport.gridVisible;
+      grid.name = 'grid';
       this.scene.add(grid);
 
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -158,6 +162,27 @@ export default {
       );
     },
 
+    watchViewport() {
+      this.unwatchViewport = this.store.watch(
+        (state) => state.viewport,
+        (viewport) => {
+          // Update grid visibility
+          if (this.scene) {
+            const grid = this.scene.getObjectByName('grid');
+            if (grid) {
+              grid.visible = viewport.gridVisible;
+            }
+          }
+
+          // Update controls configuration
+          if (this.controls) {
+            Object.assign(this.controls, viewport.controls);
+          }
+        },
+        { deep: true }
+      );
+    },
+
     syncTransformTarget(selection) {
       if (!this.transformGizmo) {
         return;
@@ -222,6 +247,11 @@ export default {
       if (this.unwatchSnapping) {
         this.unwatchSnapping();
         this.unwatchSnapping = null;
+      }
+
+      if (this.unwatchViewport) {
+        this.unwatchViewport();
+        this.unwatchViewport = null;
       }
 
       if (this.selectionManager) {

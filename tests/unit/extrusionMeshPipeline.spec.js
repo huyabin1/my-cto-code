@@ -210,10 +210,10 @@ describe('Extrusion Mesh Pipeline Integration', () => {
       const box = WallMeshFactory.getBoundingBox(mesh);
 
       expect(box).toBeInstanceOf(THREE.Box3);
-      
+
       const size = new THREE.Vector3();
       box.getSize(size);
-      
+
       expect(size.x).toBeCloseTo(5, 1);
       expect(size.y).toBeCloseTo(3, 1);
       expect(size.z).toBeCloseTo(0.2, 1);
@@ -232,10 +232,10 @@ describe('Extrusion Mesh Pipeline Integration', () => {
       const box = FloorMeshFactory.getBoundingBox(mesh);
 
       expect(box).toBeInstanceOf(THREE.Box3);
-      
+
       const size = new THREE.Vector3();
       box.getSize(size);
-      
+
       expect(size.x).toBeCloseTo(3, 1);
       expect(size.y).toBeCloseTo(0.15, 1);
       expect(size.z).toBeCloseTo(3, 1);

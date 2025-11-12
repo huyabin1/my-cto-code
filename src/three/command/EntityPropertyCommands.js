@@ -21,13 +21,13 @@ class UpdateEntityPropertyCommand extends Command {
     this.property = property;
     this.newValue = newValue;
     this.sceneGraph = getSharedSceneGraph();
-    
+
     // Get old value from entity data if not provided
     const entity = this.store.state.editor.entities.find((e) => e.id === entityId);
     if (!entity) {
       throw new Error(`Entity ${entityId} not found`);
     }
-    
+
     this.oldValue = oldValue !== null ? oldValue : entity[property];
     this.entity = entity;
     this.description = `更新实体${entityId}.${property}: ${this.oldValue} -> ${newValue}`;
@@ -59,7 +59,7 @@ class UpdateEntityPropertyCommand extends Command {
     if (entityData && entityData.threeObject && entity.type === 'wall') {
       // Prepare update config for WallFactory
       const updateConfig = {};
-      
+
       // Map store properties to factory config properties
       const propertyMap = {
         height: 'height',
@@ -76,7 +76,7 @@ class UpdateEntityPropertyCommand extends Command {
       if (Object.keys(updateConfig).length > 0) {
         try {
           WallFactory.update(entityData.threeObject, updateConfig);
-          
+
           // Trigger Three.js render update
           entityData.threeObject.updateMatrixWorld(true);
         } catch (error) {

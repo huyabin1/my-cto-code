@@ -3,24 +3,9 @@
     <div ref="viewportContainer" class="viewport-container"></div>
     <div class="viewport-controls">
       <el-button-group>
-        <el-button 
-          size="mini" 
-          icon="el-icon-refresh-left" 
-          @click="resetView"
-          title="重置视角"
-        />
-        <el-button 
-          size="mini" 
-          icon="el-icon-zoom-in" 
-          @click="zoomIn"
-          title="放大"
-        />
-        <el-button 
-          size="mini" 
-          icon="el-icon-zoom-out" 
-          @click="zoomOut"
-          title="缩小"
-        />
+        <el-button size="mini" icon="el-icon-refresh-left" @click="resetView" title="重置视角" />
+        <el-button size="mini" icon="el-icon-zoom-in" @click="zoomIn" title="放大" />
+        <el-button size="mini" icon="el-icon-zoom-out" @click="zoomOut" title="缩小" />
       </el-button-group>
     </div>
   </div>
@@ -33,6 +18,7 @@ import { getSharedSceneGraph } from '@/three/core/SceneGraph';
 
 export default {
   name: 'PreviewViewport',
+  inject: ['store'],
   props: {
     backgroundColor: {
       type: String,
@@ -47,6 +33,7 @@ export default {
       controls: null,
       animationId: null,
       sceneGraph: null,
+      unwatchViewport: null,
       defaultCameraPosition: new THREE.Vector3(15, 15, 15),
       defaultCameraTarget: new THREE.Vector3(0, 0, 0),
     };
@@ -54,6 +41,7 @@ export default {
   mounted() {
     this.initViewport();
     this.setupSceneGraph();
+    this.watchViewport();
     this.animate();
     window.addEventListener('resize', this.handleResize);
   },
@@ -76,7 +64,7 @@ export default {
       this.camera.lookAt(this.defaultCameraTarget);
 
       // Create renderer
-      this.renderer = new THREE.WebGLRenderer({ 
+      this.renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: false,
       });
@@ -136,6 +124,8 @@ export default {
     addHelpers() {
       // Grid helper
       const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0x444444);
+      gridHelper.visible = this.store.state.viewport.gridVisible;
+      gridHelper.name = 'grid';
       this.scene.add(gridHelper);
 
       // Axes helper
@@ -156,7 +146,7 @@ export default {
 
     setupSceneGraph() {
       this.sceneGraph = getSharedSceneGraph();
-      
+
       // Add scene graph root to the scene
       const rootGroup = this.sceneGraph.getRootGroup();
       this.scene.add(rootGroup);
@@ -170,6 +160,27 @@ export default {
       // The root group is already in the scene, so changes are automatic
       // We can add custom logic here if needed
       this.$emit('scene-graph-change', event);
+    },
+
+    watchViewport() {
+      this.unwatchViewport = this.store.watch(
+        (state) => state.viewport,
+        (viewport) => {
+          // Update grid visibility
+          if (this.scene) {
+            const grid = this.scene.getObjectByName('grid');
+            if (grid) {
+              grid.visible = viewport.gridVisible;
+            }
+          }
+
+          // Update controls configuration
+          if (this.controls) {
+            Object.assign(this.controls, viewport.controls);
+          }
+        },
+        { deep: true }
+      );
     },
 
     animate() {
@@ -207,7 +218,7 @@ export default {
       this.camera.position.copy(this.defaultCameraPosition);
       this.controls.target.copy(this.defaultCameraTarget);
       this.controls.update();
-      
+
       this.$emit('view-reset');
     },
 
@@ -217,7 +228,7 @@ export default {
       const direction = new THREE.Vector3();
       this.camera.getWorldDirection(direction);
       this.camera.position.addScaledVector(direction, 2);
-      
+
       this.$emit('zoom-change', 'in');
     },
 
@@ -227,7 +238,7 @@ export default {
       const direction = new THREE.Vector3();
       this.camera.getWorldDirection(direction);
       this.camera.position.addScaledVector(direction, -2);
-      
+
       this.$emit('zoom-change', 'out');
     },
 
@@ -242,13 +253,18 @@ export default {
         this.unsubscribe();
       }
 
+      if (this.unwatchViewport) {
+        this.unwatchViewport();
+        this.unwatchViewport = null;
+      }
+
       if (this.controls) {
         this.controls.dispose();
       }
 
       if (this.renderer) {
         this.renderer.dispose();
-        
+
         if (this.renderer.domElement && this.renderer.domElement.parentNode) {
           this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
         }

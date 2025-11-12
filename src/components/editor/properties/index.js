@@ -56,9 +56,4 @@ export function hasSchema(type) {
 }
 
 // Export individual schemas for direct import
-export {
-  wallSchema,
-  doorSchema,
-  windowSchema,
-  measurementSchema,
-};
+export { wallSchema, doorSchema, windowSchema, measurementSchema };

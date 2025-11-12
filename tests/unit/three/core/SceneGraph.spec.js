@@ -18,10 +18,7 @@ describe('SceneGraph', () => {
   describe('Entity Management', () => {
     it('should add an entity', () => {
       const entity = { type: 'wall', height: 2.8 };
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial()
-      );
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
 
       const result = sceneGraph.addEntity('wall-1', entity, mesh);
 
@@ -44,10 +41,7 @@ describe('SceneGraph', () => {
     });
 
     it('should remove an entity', () => {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial()
-      );
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
       sceneGraph.addEntity('wall-1', {}, mesh);
 
       const removed = sceneGraph.removeEntity('wall-1');
@@ -129,10 +123,7 @@ describe('SceneGraph', () => {
     });
 
     it('should add entities to root group', () => {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial()
-      );
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
 
       sceneGraph.addEntity('wall-1', {}, mesh);
 
@@ -248,12 +239,9 @@ describe('SceneGraph', () => {
 
   describe('Disposal', () => {
     it('should dispose all resources', () => {
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial()
-      );
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial());
       sceneGraph.addEntity('wall-1', {}, mesh);
-      
+
       const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
       sceneGraph.registerMaterial('red', material);
 

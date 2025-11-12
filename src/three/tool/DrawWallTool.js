@@ -242,13 +242,14 @@ class DrawWallTool {
     if (this.endPoint && !this.startPoint.equals(this.endPoint)) {
       const lineGeometry = new THREE.BufferGeometry();
       const linePositions = new Float32Array([
-        this.startPoint.x, 0.05, this.startPoint.y,
-        this.endPoint.x, 0.05, this.endPoint.y,
+        this.startPoint.x,
+        0.05,
+        this.startPoint.y,
+        this.endPoint.x,
+        0.05,
+        this.endPoint.y,
       ]);
-      lineGeometry.setAttribute(
-        'position',
-        new THREE.BufferAttribute(linePositions, 3)
-      );
+      lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
 
       const lineMaterial = new THREE.LineBasicMaterial({
         color: 0x0088ff,
