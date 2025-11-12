@@ -195,6 +195,11 @@ describe('Editor Store Module', () => {
     it('should have default viewport settings', () => {
       expect(state.viewport.viewMode).toBe('2d');
       expect(state.viewport.layoutMode).toBe('single');
+      expect(state.viewport.grid.visible).toBe(true);
+      expect(state.viewport.grid.density).toBe(1);
+      expect(state.viewport.grid.size).toBe(5000);
+      expect(state.viewport.axis.visible).toBe(true);
+      expect(state.viewport.axis.size).toBe(1000);
     });
 
     it('should have null command stack initially', () => {
@@ -495,6 +500,54 @@ describe('Editor Store Module', () => {
       store.mutations.SET_LAYOUT_MODE(state, 'split');
 
       expect(state.viewport.layoutMode).toBe('split');
+    });
+
+    it('should merge viewport settings', () => {
+      store.mutations.SET_VIEWPORT(state, {
+        viewMode: 'sync',
+        grid: { density: 1.5 },
+        axis: { visible: false },
+      });
+
+      expect(state.viewport.viewMode).toBe('sync');
+      expect(state.viewport.grid.density).toBe(1.5);
+      expect(state.viewport.axis.visible).toBe(false);
+    });
+
+    it('should update grid settings', () => {
+      store.mutations.SET_VIEWPORT_GRID(state, {
+        size: 6000,
+        density: 2,
+        divisions: 120,
+        visible: false,
+      });
+
+      expect(state.viewport.grid.size).toBe(6000);
+      expect(state.viewport.grid.density).toBe(2);
+      expect(state.viewport.grid.divisions).toBe(120);
+      expect(state.viewport.grid.visible).toBe(false);
+    });
+
+    it('should update axis settings', () => {
+      store.mutations.SET_VIEWPORT_AXIS(state, {
+        size: 500,
+        visible: false,
+      });
+
+      expect(state.viewport.axis.size).toBe(500);
+      expect(state.viewport.axis.visible).toBe(false);
+    });
+
+    it('should dispatch viewport actions', () => {
+      const commit = jest.fn();
+
+      store.actions.setViewport({ commit }, { viewMode: '3d' });
+      store.actions.setGridSettings({ commit }, { density: 3 });
+      store.actions.setAxisSettings({ commit }, { size: 400 });
+
+      expect(commit).toHaveBeenCalledWith('SET_VIEWPORT', { viewMode: '3d' });
+      expect(commit).toHaveBeenCalledWith('SET_VIEWPORT_GRID', { density: 3 });
+      expect(commit).toHaveBeenCalledWith('SET_VIEWPORT_AXIS', { size: 400 });
     });
   });
 });

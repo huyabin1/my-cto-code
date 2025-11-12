@@ -42,6 +42,16 @@ describe('EditorLayout.vue - Viewport Integration', () => {
             viewport: {
               viewMode: '2d',
               layoutMode: 'single',
+              grid: {
+                visible: true,
+                size: 5000,
+                density: 1,
+                divisions: 50,
+              },
+              axis: {
+                visible: true,
+                size: 1000,
+              },
             },
           },
           actions: {

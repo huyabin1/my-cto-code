@@ -74,6 +74,16 @@ export default {
     viewport: {
       viewMode: '2d', // '2d' | '3d' | 'sync'
       layoutMode: 'single', // 'single' | 'split' | 'floating'
+      grid: {
+        visible: true,
+        size: 5000,
+        density: 1,
+        divisions: 50,
+      },
+      axis: {
+        visible: true,
+        size: 1000,
+      },
     },
     commandStack: null, // Reference to CommandStack instance
   }),
@@ -184,6 +194,62 @@ export default {
     },
     SET_LAYOUT_MODE(state, mode) {
       state.viewport.layoutMode = mode;
+    },
+    SET_VIEWPORT(state, viewport) {
+      if (!viewport || typeof viewport !== 'object') {
+        return;
+      }
+      const { grid = {}, axis = {}, ...rest } = viewport;
+      state.viewport = {
+        ...state.viewport,
+        ...rest,
+        grid: {
+          ...state.viewport.grid,
+          ...grid,
+        },
+        axis: {
+          ...state.viewport.axis,
+          ...axis,
+        },
+      };
+    },
+    SET_VIEWPORT_GRID(state, gridSettings) {
+      const next = {
+        ...state.viewport.grid,
+        ...(gridSettings || {}),
+      };
+
+      if (typeof next.size !== 'number' || Number.isNaN(next.size) || next.size <= 0) {
+        next.size = state.viewport.grid.size;
+      }
+
+      if (typeof next.density !== 'number' || Number.isNaN(next.density) || next.density <= 0) {
+        next.density = state.viewport.grid.density;
+      }
+
+      if (typeof next.divisions !== 'number' || Number.isNaN(next.divisions) || next.divisions <= 0) {
+        next.divisions = state.viewport.grid.divisions;
+      }
+
+      state.viewport = {
+        ...state.viewport,
+        grid: next,
+      };
+    },
+    SET_VIEWPORT_AXIS(state, axisSettings) {
+      const next = {
+        ...state.viewport.axis,
+        ...(axisSettings || {}),
+      };
+
+      if (typeof next.size !== 'number' || Number.isNaN(next.size) || next.size <= 0) {
+        next.size = state.viewport.axis.size;
+      }
+
+      state.viewport = {
+        ...state.viewport,
+        axis: next,
+      };
     },
     ADD_ENTITY(state, entity) {
       if (!state.entities.find((e) => e.id === entity.id)) {
@@ -346,6 +412,15 @@ export default {
     },
     setLayoutMode({ commit }, mode) {
       commit('SET_LAYOUT_MODE', mode);
+    },
+    setViewport({ commit }, viewport) {
+      commit('SET_VIEWPORT', viewport);
+    },
+    setGridSettings({ commit }, gridSettings) {
+      commit('SET_VIEWPORT_GRID', gridSettings);
+    },
+    setAxisSettings({ commit }, axisSettings) {
+      commit('SET_VIEWPORT_AXIS', axisSettings);
     },
     addEntity({ commit }, entity) {
       commit('ADD_ENTITY', entity);

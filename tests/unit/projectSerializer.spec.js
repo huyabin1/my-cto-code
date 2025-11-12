@@ -53,6 +53,20 @@ describe('Project Serializer', () => {
       measurements: [],
       measurementResultsVisible: true,
       commandStackInfo: { canUndo: true, canRedo: false },
+      viewport: {
+        viewMode: 'sync',
+        layoutMode: 'split',
+        grid: {
+          visible: true,
+          size: 2500,
+          density: 2,
+          divisions: 80,
+        },
+        axis: {
+          visible: true,
+          size: 800,
+        },
+      },
     },
     cad: {
       layers: [{ id: 'layer-structure', name: '结构', visible: true }],
@@ -108,6 +122,7 @@ describe('Project Serializer', () => {
       expect(result.editor.snapping.orthogonal).toBe(true);
       expect(result.editor.activeTool).toBe('distance');
       expect(result.editor.materials).toHaveLength(1);
+      expect(result.editor.viewport).toEqual(mockState.editor.viewport);
     });
 
     it('should serialize CAD state', () => {
@@ -149,6 +164,20 @@ describe('Project Serializer', () => {
         drawWallToolEnabled: false,
         snapping: { orthogonal: false },
         activeTool: 'area',
+        viewport: {
+          viewMode: '3d',
+          layoutMode: 'floating',
+          grid: {
+            visible: false,
+            size: 3000,
+            density: 1.5,
+            divisions: 60,
+          },
+          axis: {
+            visible: false,
+            size: 600,
+          },
+        },
       },
       cad: {
         layers: [{ id: 'layer-furniture', name: '家具', visible: false }],
@@ -168,6 +197,9 @@ describe('Project Serializer', () => {
       expect(result.editor.drawWallToolEnabled).toBe(false);
       expect(result.editor.snapping.orthogonal).toBe(false);
       expect(result.editor.activeTool).toBe('area');
+      expect(result.editor.viewport.viewMode).toBe('3d');
+      expect(result.editor.viewport.layoutMode).toBe('floating');
+      expect(result.editor.viewport.grid.visible).toBe(false);
 
       expect(result.cad.opacity).toBe(0.5);
       expect(result.cad.selectedUnit).toBe('cm');
