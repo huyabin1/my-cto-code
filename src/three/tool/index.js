@@ -7,3 +7,4 @@ export {
 } from './MeasurementTool';
 
 export { default as ToolController } from './ToolController';
+export { default as DrawWallTool } from './DrawWallTool';

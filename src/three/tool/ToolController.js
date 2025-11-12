@@ -8,6 +8,7 @@ import {
   AddMeasurementCommand,
   ToggleToolCommand,
 } from '../command';
+import DrawWallTool from './DrawWallTool';
 import WallFactory from '../factory/WallFactory';
 import { getSharedSceneGraph } from '@/three/core/SceneGraph';
 
@@ -38,9 +39,7 @@ class ToolController {
 
     // 工具状态
     this.activeTool = null;
-    this.isDrawing = false;
-    this.tempWall = null;
-    this.drawStartPoint = null;
+    this.drawWallTool = null;
 
     // 交互状态
     this.raycaster = new THREE.Raycaster();
@@ -50,8 +49,27 @@ class ToolController {
     // 事件监听器
     this.eventListeners = new Map();
 
+    this.initDrawWallTool();
     this.initEventListeners();
     this.initCommandStackListeners();
+  }
+
+  /**
+   * 初始化墙体绘制工具
+   */
+  initDrawWallTool() {
+    this.drawWallTool = new DrawWallTool(
+      this.scene,
+      this.camera,
+      this.raycaster,
+      this.groundPlane,
+      this.store
+    );
+
+    // 设置墙体创建回调
+    this.drawWallTool.onWallCreatedCallback((wallConfig) => {
+      this.createWallFromDrawing(wallConfig);
+    });
   }
 
   /**
@@ -104,8 +122,14 @@ class ToolController {
     this.updateMousePosition(event);
 
     // 检查是否激活了墙体绘制工具
-    if (this.store.state.editor.drawWallToolEnabled) {
-      this.startWallDrawing();
+    if (this.store.state.editor.drawWallToolEnabled && this.drawWallTool) {
+      const groundPoint = this.getGroundPoint();
+      if (groundPoint) {
+        // Convert ground point (x, y, z) to 2D point (x, y) for tool
+        this.drawWallTool.startDrawing(
+          new THREE.Vector2(groundPoint.x, groundPoint.z)
+        );
+      }
     }
   }
 
@@ -115,8 +139,14 @@ class ToolController {
   handleMouseMove(event) {
     this.updateMousePosition(event);
 
-    if (this.isDrawing && this.tempWall) {
-      this.updateTempWall();
+    if (this.drawWallTool && this.drawWallTool.isActive()) {
+      const groundPoint = this.getGroundPoint();
+      if (groundPoint) {
+        // Convert ground point (x, y, z) to 2D point (x, y) for tool
+        this.drawWallTool.updateDrawing(
+          new THREE.Vector2(groundPoint.x, groundPoint.z)
+        );
+      }
     }
   }
 
@@ -126,8 +156,14 @@ class ToolController {
   handleMouseUp(event) {
     if (event.button !== 0) return; // 只处理左键
 
-    if (this.isDrawing) {
-      this.finishWallDrawing();
+    if (this.drawWallTool && this.drawWallTool.isActive()) {
+      const groundPoint = this.getGroundPoint();
+      if (groundPoint) {
+        // Convert ground point (x, y, z) to 2D point (x, y) for tool
+        this.drawWallTool.finishDrawing(
+          new THREE.Vector2(groundPoint.x, groundPoint.z)
+        );
+      }
     }
   }
 
@@ -152,6 +188,7 @@ class ToolController {
 
     // ESC: 取消当前操作
     if (event.key === 'Escape') {
+      event.preventDefault();
       this.cancelCurrentOperation();
     }
   }
@@ -183,129 +220,22 @@ class ToolController {
   }
 
   /**
-   * 开始墙体绘制
+   * 从绘制工具创建墙体
    */
-  startWallDrawing() {
-    const groundPoint = this.getGroundPoint();
-    if (!groundPoint) return;
-
-    this.isDrawing = true;
-    this.drawStartPoint = new THREE.Vector2(groundPoint.x, groundPoint.z);
-
-    // 创建临时墙体预览
-    const wallConfig = {
-      start: this.drawStartPoint,
-      end: this.drawStartPoint,
-      height: 2.8,
-      thickness: 0.2,
-      material: this.store.state.editor.activeSelection.material,
-      color: this.store.state.editor.activeSelection.color,
-    };
-
-    this.tempWall = WallFactory.create(wallConfig);
-    this.tempWall.traverse((child) => {
-      if (child.material) {
-        child.material.transparent = true;
-        child.material.opacity = 0.6;
-      }
-    });
-
-    this.scene.add(this.tempWall);
-  }
-
-  /**
-   * 更新临时墙体
-   */
-  updateTempWall() {
-    if (!this.tempWall || !this.drawStartPoint) return;
-
-    const groundPoint = this.getGroundPoint();
-    if (!groundPoint) return;
-
-    const endPoint = new THREE.Vector2(groundPoint.x, groundPoint.z);
-
-    // 更新临时墙体配置
-    const wallConfig = {
-      start: this.drawStartPoint,
-      end: endPoint,
-      height: 2.8,
-      thickness: 0.2,
-      material: this.store.state.editor.activeSelection.material,
-      color: this.store.state.editor.activeSelection.color,
-    };
-
-    WallFactory.update(this.tempWall, wallConfig);
-  }
-
-  /**
-   * 完成墙体绘制
-   */
-  finishWallDrawing() {
-    if (!this.isDrawing || !this.drawStartPoint) return;
-
-    const groundPoint = this.getGroundPoint();
-    if (!groundPoint) return;
-
-    const endPoint = new THREE.Vector2(groundPoint.x, groundPoint.z);
-
-    // 检查墙体长度
-    if (this.drawStartPoint.distanceTo(endPoint) < 0.1) {
-      this.cancelWallDrawing();
-      return;
-    }
-
-    // 移除临时墙体
-    this.removeTempWall();
-
-    // 创建墙体命令并执行
-    const wallConfig = {
-      start: this.drawStartPoint,
-      end: endPoint,
-      height: 2.8,
-      thickness: 0.2,
-      material: this.store.state.editor.activeSelection.material,
-      color: this.store.state.editor.activeSelection.color,
-    };
-
+  createWallFromDrawing(wallConfig) {
     const command = new CreateWallCommand(this.scene, wallConfig, {
       store: this.store,
       sceneGraph: this.sceneGraph,
     });
     this.commandStack.execute(command);
-
-    this.isDrawing = false;
-    this.drawStartPoint = null;
-  }
-
-  /**
-   * 取消墙体绘制
-   */
-  cancelWallDrawing() {
-    this.removeTempWall();
-    this.isDrawing = false;
-    this.drawStartPoint = null;
-  }
-
-  /**
-   * 移除临时墙体
-   */
-  removeTempWall() {
-    if (this.tempWall) {
-      this.scene.remove(this.tempWall);
-      this.tempWall.traverse((child) => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) child.material.dispose();
-      });
-      this.tempWall = null;
-    }
   }
 
   /**
    * 取消当前操作
    */
   cancelCurrentOperation() {
-    if (this.isDrawing) {
-      this.cancelWallDrawing();
+    if (this.drawWallTool && this.drawWallTool.isActive()) {
+      this.drawWallTool.cancel();
     }
   }
 
@@ -402,6 +332,12 @@ class ToolController {
   destroy() {
     // 取消当前操作
     this.cancelCurrentOperation();
+
+    // 销毁绘制工具
+    if (this.drawWallTool) {
+      this.drawWallTool.destroy();
+      this.drawWallTool = null;
+    }
 
     // 移除事件监听器
     const canvas = this.eventListeners.get('canvas');
