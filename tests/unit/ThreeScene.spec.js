@@ -21,7 +21,7 @@ jest.mock('three', () => ({
     setPixelRatio: jest.fn(),
     setClearColor: jest.fn(),
     setSize: jest.fn(),
-    domElement: { appendChild: jest.fn() },
+    domElement: { appendChild: jest.fn(), parentNode: null },
     render: jest.fn(),
     dispose: jest.fn(),
     shadowMap: { enabled: false, type: null },
@@ -35,6 +35,23 @@ jest.mock('three', () => ({
       camera: { near: 0, far: 0, left: 0, right: 0, top: 0, bottom: 0 },
     },
   })),
+  Vector2: jest.fn().mockImplementation((x, y) => ({ x, y })),
+  Vector3: jest.fn().mockImplementation((x, y, z) => ({ x, y, z })),
+  Vector4: jest.fn().mockImplementation((x, y, z, w) => ({ x, y, z, w })),
+  GridHelper: jest.fn().mockImplementation(() => ({})),
+  PlaneGeometry: jest.fn().mockImplementation(() => ({})),
+  MeshStandardMaterial: jest.fn().mockImplementation((options) => ({
+    ...options,
+    dispose: jest.fn(),
+  })),
+  Mesh: jest.fn().mockImplementation((geometry, material) => ({
+    geometry,
+    material,
+    rotation: { x: 0, y: 0, z: 0 },
+    position: { y: 0 },
+    receiveShadow: false,
+    castShadow: false,
+  })),
   PCFSoftShadowMap: 'PCFSoftShadowMap',
 }));
 
@@ -47,6 +64,70 @@ jest.mock('three-stdlib', () => ({
     enableRotate: true,
     update: jest.fn(),
     dispose: jest.fn(),
+  })),
+}));
+
+// Mock the lighting helper
+jest.mock('@/three/helper/lightingHelper', () => ({
+  setupLighting: jest.fn(() => ({
+    ambientLight: {},
+    directionalLight: {},
+  })),
+}));
+
+// Mock WallFactory
+jest.mock('@/three/factory', () => ({
+  create: jest.fn(() => ({})),
+}));
+
+// Mock ToolController
+jest.mock('@/three/tool/ToolController', () => 
+  jest.fn().mockImplementation(() => ({
+    destroy: jest.fn(),
+  }))
+);
+
+// Mock core managers
+jest.mock('@/three/core', () => ({
+  getSharedRendererManager: jest.fn(() => ({
+    createRenderer: jest.fn(() => ({
+      setPixelRatio: jest.fn(),
+      setClearColor: jest.fn(),
+      setSize: jest.fn(),
+      render: jest.fn(),
+      dispose: jest.fn(),
+      domElement: { appendChild: jest.fn(), parentNode: null },
+      shadowMap: { enabled: false },
+      removeChild: jest.fn(),
+    })),
+    removeRenderer: jest.fn(),
+    disposeAll: jest.fn(),
+  })),
+  getSharedCameraManager: jest.fn(() => ({
+    createPerspectiveCamera: jest.fn((id, w, h) => ({
+      fov: 75,
+      aspect: w / h,
+      near: 0.1,
+      far: 1000,
+      position: { set: jest.fn() },
+      lookAt: jest.fn(),
+      updateProjectionMatrix: jest.fn(),
+    })),
+    updateAspectRatio: jest.fn(),
+    removeCamera: jest.fn(),
+    disposeAll: jest.fn(),
+  })),
+  getSharedRenderLoop: jest.fn(() => ({
+    addCallback: jest.fn(),
+    removeCallback: jest.fn(),
+    start: jest.fn(),
+    stop: jest.fn(),
+    getIsRunning: jest.fn(() => false),
+    dispose: jest.fn(),
+  })),
+  getSharedSceneGraph: jest.fn(() => ({
+    getRootGroup: jest.fn(() => ({})),
+    subscribe: jest.fn(() => jest.fn()),
   })),
 }));
 
@@ -83,6 +164,14 @@ describe('ThreeScene.vue', () => {
       clientWidth: 800,
       clientHeight: 600,
       appendChild: jest.fn(),
+      removeChild: jest.fn(),
+    };
+
+    // Mock store
+    const mockStore = {
+      state: {},
+      dispatch: jest.fn(),
+      commit: jest.fn(),
     };
 
     wrapper = shallowMount(ThreeScene, {
@@ -91,6 +180,9 @@ describe('ThreeScene.vue', () => {
         $refs: {
           threeContainer: mockContainer,
         },
+      },
+      provide: {
+        store: mockStore,
       },
     });
   });

@@ -1,6 +1,11 @@
-# 高级功能与性能优化总结 - Advanced Tools Polish
+# 实现总结 - Implementation Summary
 
-## 🎯 目标概述
+## 📋 完成的功能模块
+
+### ✅ Scene Core Bootstrap (最新)
+统一的 3D 渲染核心，为 2D/3D 视图提供生命周期管理。
+
+### ✅ 高级功能与性能优化 - Advanced Tools Polish
 
 目标是补齐高级功能并优化性能，使体验接近 esmap 正式版。实施范围包括：
 
@@ -10,6 +15,142 @@
 4. **端到端测试与文档**：百级墙体场景 60 FPS、全量测试
 
 ## 🧱 核心实现
+
+### 0. Scene Core Bootstrap 系统 (src/three/core/)
+
+#### 目标
+搭建可复用的三维渲染核心，为后续 2D/3D 视图提供统一生命周期管理。
+
+#### 核心模块
+
+**RendererManager** - WebGL 渲染器管理
+```javascript
+import { getSharedRendererManager } from '@/three/core';
+
+const rm = getSharedRendererManager();
+const renderer = rm.createRenderer('main', {
+  antialias: true,
+  shadowMap: true,
+  clearColor: '#f5f5f5',
+});
+```
+
+**CameraManager** - 相机管理与自适应
+```javascript
+import { getSharedCameraManager } from '@/three/core';
+
+const cm = getSharedCameraManager();
+const camera = cm.createPerspectiveCamera('main', 800, 600, {
+  fov: 75,
+  position: { x: 20, y: 20, z: 20 },
+});
+
+// 窗口大小变化时更新
+cm.updateAspectRatio('main', newWidth, newHeight);
+```
+
+**RenderLoop** - 动画循环管理
+```javascript
+import { getSharedRenderLoop } from '@/three/core';
+
+const rl = getSharedRenderLoop();
+
+rl.addCallback(() => {
+  renderer.render(scene, camera);
+});
+
+rl.start();
+```
+
+**InteractionBus** - 事件分发系统
+```javascript
+import { getSharedInteractionBus } from '@/three/core';
+
+const bus = getSharedInteractionBus();
+
+// 订阅事件
+bus.on('camera-updated', (data) => {
+  console.log('摄像机已更新', data);
+});
+
+// 发送事件
+bus.emit('camera-updated', { position: [10, 10, 10] });
+```
+
+#### 架构特点
+- ✅ 单一职责原则：每个模块管理一个核心功能
+- ✅ 共享单例模式：全局单一实例管理
+- ✅ 生命周期隔离：初始化、运行时、清理流程清晰
+- ✅ 事件驱动：通过 InteractionBus 进行组件通信
+- ✅ 资源管理：统一的创建、更新、销毁流程
+- ✅ 错误处理：回调中的异常不会中断循环
+
+#### 集成示例 (ThreeScene.vue)
+
+原来的 ThreeScene 直接管理所有 Three.js 对象，现在通过核心模块：
+
+```javascript
+// 初始化
+this.rendererManager = getSharedRendererManager();
+this.cameraManager = getSharedCameraManager();
+this.renderLoop = getSharedRenderLoop();
+
+// 创建渲染器和相机
+this.renderer = this.rendererManager.createRenderer('main', {...});
+this.camera = this.cameraManager.createPerspectiveCamera('main', w, h);
+
+// 启动渲染循环
+this.renderLoop.addCallback(this.render);
+this.renderLoop.start();
+
+// 窗口 resize
+cameraManager.updateAspectRatio('main', newWidth, newHeight);
+
+// 清理
+this.renderLoop.removeCallback(this.render);
+this.rendererManager.removeRenderer('main');
+```
+
+#### 测试覆盖
+
+完整的单元测试位于 `tests/unit/three/core/core.spec.js`：
+- ✅ RendererManager 创建、获取、销毁
+- ✅ CameraManager 透视和正交相机
+- ✅ RenderLoop 启动、停止、回调管理
+- ✅ InteractionBus 发送、订阅、取消订阅
+- ✅ 共享单例和重置
+- ✅ 集成场景测试
+- ✅ 错误处理和边界情况
+
+#### 相关文件
+```
+src/three/core/
+├── RendererManager.js      # 渲染器管理
+├── CameraManager.js        # 相机管理  
+├── RenderLoop.js           # 动画循环
+├── InteractionBus.js       # 事件总线
+├── index.js                # 导出接口
+├── SceneGraph.js           # 场景图管理
+├── SceneManager.js         # 场景管理
+├── SceneOptimizer.js       # 性能优化
+└── README.md               # 详细文档
+
+src/three/helper/
+├── lightingHelper.js       # 光源配置助手
+├── SelectionManager.js     # 选择管理
+└── TransformGizmo.js       # 变换工具
+
+tests/unit/three/core/
+├── core.spec.js            # 核心模块测试 (新增)
+└── SceneGraph.spec.js      # 场景图测试
+```
+
+#### 性能与清理
+
+- 统一的资源清理流程：RAF 取消、材质释放、几何体销毁
+- 错误处理保证渲染循环连续性
+- 事件总线自动处理异常
+- 支持多个 viewport 共享管理器
 
 ### 1. 测量工具系统 (src/three/tool/)
 
