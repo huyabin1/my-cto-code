@@ -159,6 +159,7 @@ export function serializeProject(state) {
       measurements: state.editor?.measurements || [],
       measurementResultsVisible: state.editor?.measurementResultsVisible || false,
       commandStackInfo: state.editor?.commandStackInfo || {},
+      viewport: state.editor?.viewport || {},
     },
     cad: {
       layers: state.cad?.layers || [],

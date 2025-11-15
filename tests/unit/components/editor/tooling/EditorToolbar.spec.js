@@ -43,6 +43,17 @@ describe('EditorToolbar', () => {
       },
       viewport: {
         viewMode: '2d',
+        layoutMode: 'single',
+        grid: {
+          visible: true,
+          density: 1,
+          size: 5000,
+          divisions: 50,
+        },
+        axis: {
+          visible: true,
+          size: 1000,
+        },
       },
       commandStackInfo: {
         canUndo: false,
