@@ -60,12 +60,17 @@ function updateEntityInStore(store, entityData) {
   if (!store) {
     return;
   }
-  const entities = store.state.editor.entities;
-  const index = entities.findIndex((item) => item.id === entityData.id);
-  if (index > -1) {
-    Object.assign(entities[index], entityData);
+  const existingEntity = store.getters['entities/getEntityById'](entityData.id);
+  if (existingEntity) {
+    store.dispatch('entities/updateEntity', {
+      id: entityData.id,
+      updates: entityData
+    });
   } else {
-    store.commit('editor/ADD_ENTITY', entityData);
+    store.dispatch('entities/createEntity', {
+      type: entityData.type,
+      ...entityData
+    });
   }
 }
 
@@ -73,7 +78,7 @@ function removeEntityFromStore(store, entityId) {
   if (!store) {
     return;
   }
-  store.commit('editor/REMOVE_ENTITY', entityId);
+  store.dispatch('entities/deleteEntity', entityId);
 }
 
 /**

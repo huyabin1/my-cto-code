@@ -11,7 +11,7 @@ const PROJECT_VERSION = '1.0.0';
  * Generates a unique ID
  * @returns {string} Unique ID
  */
-function generateId() {
+export function generateId() {
   return `entity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 

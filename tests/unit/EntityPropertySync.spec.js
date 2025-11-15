@@ -54,10 +54,26 @@ describe('Entity Property Sync Integration', () => {
     mockStore = {
       state: {
         editor: {
-          entities: [{ ...entity }],
           commandStack,
         },
+        entities: {
+          entities: [{ ...entity }],
+          indexes: {
+            byId: new Map([['wall-1', { ...entity }]]),
+          },
+        },
       },
+      getters: {
+        'entities/getEntityById': jest.fn((id) => 
+          id === 'wall-1' ? mockStore.state.entities.entities[0] : null
+        ),
+      },
+      dispatch: jest.fn((action, payload) => {
+        if (action === 'entities/updateEntity' && payload.id === 'wall-1') {
+          Object.assign(mockStore.state.entities.entities[0], payload.updates);
+          Object.assign(mockStore.state.entities.indexes.byId.get('wall-1'), payload.updates);
+        }
+      }),
       commit: jest.fn(),
     };
 
@@ -88,21 +104,30 @@ describe('Entity Property Sync Integration', () => {
       // Execute
       await commandStack.execute(command);
 
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.0 }
+      });
       expect(commandStack.canUndo()).toBe(true);
       expect(commandStack.canRedo()).toBe(false);
 
       // Undo
       await commandStack.undo();
 
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 2.8 }
+      });
       expect(commandStack.canUndo()).toBe(false);
       expect(commandStack.canRedo()).toBe(true);
 
       // Redo
       await commandStack.redo();
 
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.0 }
+      });
       expect(commandStack.canUndo()).toBe(true);
       expect(commandStack.canRedo()).toBe(false);
     });
@@ -139,9 +164,18 @@ describe('Entity Property Sync Integration', () => {
       await commandStack.execute(command2);
       await commandStack.execute(command3);
 
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
-      expect(mockStore.state.editor.entities[0].thickness).toBe(0.3);
-      expect(mockStore.state.editor.entities[0].material).toBe('wood');
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.0 }
+      });
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { thickness: 0.3 }
+      });
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { material: 'wood' }
+      });
 
       // Verify history
       expect(commandStack.canUndo()).toBe(true);
@@ -149,13 +183,22 @@ describe('Entity Property Sync Integration', () => {
 
       // Undo all
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].material).toBe('concrete');
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { material: 'concrete' }
+      });
 
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].thickness).toBe(0.2);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { thickness: 0.2 }
+      });
 
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 2.8 }
+      });
 
       // Now we can redo
       expect(commandStack.canRedo()).toBe(true);
@@ -180,16 +223,25 @@ describe('Entity Property Sync Integration', () => {
 
       // Execute
       await commandStack.execute(command1);
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.0 }
+      });
 
       // Undo
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 2.8 }
+      });
       expect(commandStack.canRedo()).toBe(true);
 
       // Execute new command (should clear redo)
       await commandStack.execute(command2);
-      expect(mockStore.state.editor.entities[0].height).toBe(3.5);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.5 }
+      });
       expect(commandStack.canRedo()).toBe(false);
     });
   });
@@ -223,7 +275,7 @@ describe('Entity Property Sync Integration', () => {
 
       // Verify the merged command has the latest value
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.state.entities.entities[0].height).toBe(2.8);
     });
   });
 
@@ -267,7 +319,7 @@ describe('Entity Property Sync Integration', () => {
 
       // Execute 10 commands
       for (let i = 0; i < 10; i++) {
-        mockStore.state.editor.entities[0].height = 2.8 + (i - 1) * 0.1;
+        mockStore.state.entities.entities[0].height = 2.8 + (i - 1) * 0.1;
         const command = new UpdateEntityPropertyCommand(
           mockStore,
           'wall-1',
@@ -302,11 +354,11 @@ describe('Entity Property Sync Integration', () => {
 
       // Should still work even with missing Three.js object
       await commandStack.execute(command);
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
+      expect(mockStore.state.entities.entities[0].height).toBe(3.0);
     });
 
     it('should throw error when entity not found during command creation', () => {
-      mockStore.state.editor.entities = [];
+      mockStore.getters['entities/getEntityById'].mockReturnValue(null);
 
       // Should throw error during construction
       expect(() => {
@@ -342,19 +394,37 @@ describe('Entity Property Sync Integration', () => {
       }
 
       // Verify all changes applied
-      expect(mockStore.state.editor.entities[0].height).toBe(3.0);
-      expect(mockStore.state.editor.entities[0].thickness).toBe(0.3);
-      expect(mockStore.state.editor.entities[0].material).toBe('wood');
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 3.0 }
+      });
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { thickness: 0.3 }
+      });
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { material: 'wood' }
+      });
 
       // Undo all in reverse
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].material).toBe('concrete');
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { material: 'concrete' }
+      });
 
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].thickness).toBe(0.2);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { thickness: 0.2 }
+      });
 
       await commandStack.undo();
-      expect(mockStore.state.editor.entities[0].height).toBe(2.8);
+      expect(mockStore.dispatch).toHaveBeenCalledWith('entities/updateEntity', {
+        id: 'wall-1',
+        updates: { height: 2.8 }
+      });
     });
   });
 

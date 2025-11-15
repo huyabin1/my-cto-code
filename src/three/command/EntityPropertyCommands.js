@@ -23,7 +23,7 @@ class UpdateEntityPropertyCommand extends Command {
     this.sceneGraph = getSharedSceneGraph();
     
     // Get old value from entity data if not provided
-    const entity = this.store.state.editor.entities.find((e) => e.id === entityId);
+    const entity = this.store.getters['entities/getEntityById'](entityId);
     if (!entity) {
       throw new Error(`Entity ${entityId} not found`);
     }
@@ -46,13 +46,16 @@ class UpdateEntityPropertyCommand extends Command {
    * @private
    */
   applyPropertyUpdate(value) {
-    const entity = this.store.state.editor.entities.find((e) => e.id === this.entityId);
+    const entity = this.store.getters['entities/getEntityById'](this.entityId);
     if (!entity) {
       throw new Error(`Entity ${this.entityId} not found`);
     }
 
     // Update entity in store
-    entity[this.property] = value;
+    this.store.dispatch('entities/updateEntity', {
+      id: this.entityId,
+      updates: { [this.property]: value }
+    });
 
     // Get Three.js object from scene graph
     const entityData = this.sceneGraph.getEntity(this.entityId);

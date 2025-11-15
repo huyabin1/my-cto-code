@@ -20,10 +20,24 @@ describe('TransformEntityCommand', () => {
 
     store = {
       state: {
-        editor: {
+        editor: {},
+        entities: {
           entities: [entity],
+          indexes: {
+            byId: new Map([['wall-1', entity]]),
+          },
         },
       },
+      getters: {
+        'entities/getEntityById': jest.fn((id) => 
+          id === 'wall-1' ? entity : null
+        ),
+      },
+      dispatch: jest.fn((action, payload) => {
+        if (action === 'entities/updateEntity' && payload.id === 'wall-1') {
+          Object.assign(entity, payload.updates);
+        }
+      }),
     };
 
     sceneGraph = getSharedSceneGraph();
@@ -99,9 +113,13 @@ describe('TransformEntityCommand', () => {
   it('should throw when entity is missing', () => {
     const missingStore = {
       state: {
-        editor: {
+        editor: {},
+        entities: {
           entities: [],
         },
+      },
+      getters: {
+        'entities/getEntityById': jest.fn(() => null),
       },
     };
 
