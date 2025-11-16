@@ -2,7 +2,12 @@
  * Schema Registry Tests
  */
 
-import { getSchema, getSchemaTypes, registerSchema, hasSchema } from '@/components/editor/properties';
+import {
+  getSchema,
+  getSchemaTypes,
+  registerSchema,
+  hasSchema,
+} from '@/components/editor/properties';
 
 describe('Schema Registry', () => {
   describe('getSchema', () => {
@@ -88,7 +93,7 @@ describe('Schema Registry', () => {
       };
 
       registerSchema('custom', customSchema);
-      
+
       expect(hasSchema('custom')).toBe(true);
       const schema = getSchema('custom');
       expect(schema).toBe(customSchema);
@@ -115,7 +120,7 @@ describe('Schema Registry', () => {
       };
 
       registerSchema('wall', newSchema);
-      
+
       const currentSchema = getSchema('wall');
       expect(currentSchema).toBe(newSchema);
       expect(currentSchema.title).toBe('新的墙体属性');

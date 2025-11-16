@@ -12,25 +12,16 @@
 
     <div v-else class="schema-properties">
       <h3 class="schema-title">{{ schema.title }}</h3>
-      
+
       <div v-if="isMultiSelect" class="multi-select-info">
-        <el-alert
-          title="多选模式"
-          type="info"
-          :closable="false"
-          show-icon
-        >
+        <el-alert title="多选模式" type="info" :closable="false" show-icon>
           <template slot="default">
             已选中 {{ selectedEntities.length }} 个{{ schema.title }}，仅显示共同属性
           </template>
         </el-alert>
       </div>
 
-      <div
-        v-for="field in schema.fields"
-        :key="field.key"
-        class="property-field-wrapper"
-      >
+      <div v-for="field in schema.fields" :key="field.key" class="property-field-wrapper">
         <component
           :is="fieldComponent"
           :field="field"
@@ -86,10 +77,10 @@ export default {
       }
 
       // For multi-select, check if all entities have the same value
-      const values = this.selectedEntities.map(entity => entity[field.key]);
+      const values = this.selectedEntities.map((entity) => entity[field.key]);
       const firstValue = values[0];
-      const allSame = values.every(value => value === firstValue);
-      
+      const allSame = values.every((value) => value === firstValue);
+
       return allSame ? firstValue : null;
     },
     /**
@@ -97,11 +88,11 @@ export default {
      */
     canEditField(field) {
       if (!this.isMultiSelect) return true;
-      
+
       // Only allow editing fields that have the same value across all selected entities
-      const values = this.selectedEntities.map(entity => entity[field.key]);
+      const values = this.selectedEntities.map((entity) => entity[field.key]);
       const firstValue = values[0];
-      return values.every(value => value === firstValue);
+      return values.every((value) => value === firstValue);
     },
     /**
      * Handle field input event
@@ -111,7 +102,7 @@ export default {
         this.updateEntityProperty(this.entity.id, field.key, value);
       } else {
         // Update all selected entities
-        this.selectedEntities.forEach(entity => {
+        this.selectedEntities.forEach((entity) => {
           this.updateEntityProperty(entity.id, field.key, value);
         });
       }
@@ -144,7 +135,7 @@ export default {
     async updateEntityProperty(entityId, property, value) {
       try {
         // Get the old value for undo/redo support
-        const entity = this.selectedEntities.find(e => e.id === entityId) || this.entity;
+        const entity = this.selectedEntities.find((e) => e.id === entityId) || this.entity;
         const oldValue = entity[property];
 
         // Use the store action with command support

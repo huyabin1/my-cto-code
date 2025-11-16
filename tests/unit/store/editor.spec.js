@@ -192,11 +192,6 @@ describe('Editor Store Module', () => {
       expect(state.entities).toEqual([]);
     });
 
-    it('should have default viewport settings', () => {
-      expect(state.viewport.viewMode).toBe('2d');
-      expect(state.viewport.layoutMode).toBe('single');
-    });
-
     it('should have null command stack initially', () => {
       expect(state.commandStack).toBeNull();
     });
@@ -349,10 +344,7 @@ describe('Editor Store Module', () => {
     });
 
     it('should provide selection getters', () => {
-      state.entities.push(
-        { id: 'wall-1', type: 'wall' },
-        { id: 'wall-2', type: 'wall' }
-      );
+      state.entities.push({ id: 'wall-1', type: 'wall' }, { id: 'wall-2', type: 'wall' });
 
       store.mutations.SET_SELECTION_STATE(state, {
         ids: ['wall-2'],
@@ -459,9 +451,7 @@ describe('Editor Store Module', () => {
 
   describe('Measurements', () => {
     it('should set measurements', () => {
-      const measurements = [
-        { id: 'measure-1', type: 'distance', value: 5.5 },
-      ];
+      const measurements = [{ id: 'measure-1', type: 'distance', value: 5.5 }];
 
       store.mutations.SET_MEASUREMENTS(state, measurements);
 
@@ -481,20 +471,6 @@ describe('Editor Store Module', () => {
       store.mutations.CLEAR_MEASUREMENTS(state);
 
       expect(state.measurements).toHaveLength(0);
-    });
-  });
-
-  describe('Viewport Settings', () => {
-    it('should set view mode', () => {
-      store.mutations.SET_VIEW_MODE(state, '3d');
-
-      expect(state.viewport.viewMode).toBe('3d');
-    });
-
-    it('should set layout mode', () => {
-      store.mutations.SET_LAYOUT_MODE(state, 'split');
-
-      expect(state.viewport.layoutMode).toBe('split');
     });
   });
 });

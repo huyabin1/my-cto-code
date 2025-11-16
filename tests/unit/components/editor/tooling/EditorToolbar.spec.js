@@ -123,9 +123,7 @@ describe('EditorToolbar', () => {
   describe('Event Emissions', () => {
     it('emits new-project when new button is clicked', async () => {
       createWrapper();
-      const newButton = wrapper.find('.toolbar-button').filter((w) =>
-        w.text().includes('新建')
-      );
+      const newButton = wrapper.find('.toolbar-button').filter((w) => w.text().includes('新建'));
 
       await newButton.at(0).trigger('click');
 
@@ -134,9 +132,7 @@ describe('EditorToolbar', () => {
 
     it('emits save-project when save button is clicked', async () => {
       createWrapper();
-      const saveButton = wrapper.find('.toolbar-button').filter((w) =>
-        w.text().includes('保存')
-      );
+      const saveButton = wrapper.find('.toolbar-button').filter((w) => w.text().includes('保存'));
 
       await saveButton.at(0).trigger('click');
 

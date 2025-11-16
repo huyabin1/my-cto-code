@@ -35,7 +35,7 @@ export class SceneGraph {
     };
 
     this.entities.set(id, entityData);
-    
+
     if (threeObject) {
       threeObject.userData.entityId = id;
       this.rootGroup.add(threeObject);
@@ -62,7 +62,7 @@ export class SceneGraph {
 
     if (entityData.threeObject && entityData.threeObject.parent) {
       entityData.threeObject.parent.remove(entityData.threeObject);
-      
+
       // Dispose geometry and materials
       if (entityData.threeObject.geometry) {
         entityData.threeObject.geometry.dispose();
@@ -140,7 +140,7 @@ export class SceneGraph {
    */
   registerMaterial(name, material) {
     this.materials.set(name, material);
-    
+
     this.notifyObservers({
       type: 'material-registered',
       name,
@@ -256,7 +256,7 @@ export class SceneGraph {
    */
   dispose() {
     this.clearEntities();
-    
+
     // Dispose materials
     this.materials.forEach((material) => {
       material.dispose();

@@ -105,7 +105,7 @@ export default {
 
     setupSceneGraph() {
       this.sceneGraph = getSharedSceneGraph();
-      
+
       // Add scene graph root to the scene
       const rootGroup = this.sceneGraph.getRootGroup();
       this.scene.add(rootGroup);

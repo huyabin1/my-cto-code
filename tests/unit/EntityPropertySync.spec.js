@@ -77,13 +77,7 @@ describe('Entity Property Sync Integration', () => {
 
   describe('Single Property Change', () => {
     it('should execute and undo a single property change', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       // Execute
       await commandStack.execute(command);
@@ -110,21 +104,9 @@ describe('Entity Property Sync Integration', () => {
 
   describe('Multiple Property Changes', () => {
     it('should handle multiple consecutive property changes', async () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'thickness',
-        0.3,
-        0.2
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'thickness', 0.3, 0.2);
 
       const command3 = new UpdateEntityPropertyCommand(
         mockStore,
@@ -162,21 +144,9 @@ describe('Entity Property Sync Integration', () => {
     });
 
     it('should clear redo history when new command executed after undo', async () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.5,
-        3.0
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.5, 3.0);
 
       // Execute
       await commandStack.execute(command1);
@@ -196,21 +166,9 @@ describe('Entity Property Sync Integration', () => {
 
   describe('Command Merging', () => {
     it('should merge compatible commands', async () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.5,
-        3.0
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.5, 3.0);
 
       // Execute first
       await commandStack.execute(command1);
@@ -229,13 +187,7 @@ describe('Entity Property Sync Integration', () => {
 
   describe('Geometry Updates', () => {
     it('should trigger geometry update for each property change', async () => {
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       WallFactory.update.mockClear();
       await commandStack.execute(command);
@@ -292,13 +244,7 @@ describe('Entity Property Sync Integration', () => {
       // Create a command that will fail
       mockSceneGraph.getEntity.mockReturnValue(null);
 
-      const command = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       // Should still work even with missing Three.js object
       await commandStack.execute(command);
@@ -310,13 +256,7 @@ describe('Entity Property Sync Integration', () => {
 
       // Should throw error during construction
       expect(() => {
-        new UpdateEntityPropertyCommand(
-          mockStore,
-          'wall-1',
-          'height',
-          3.0,
-          2.8
-        );
+        new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
       }).toThrow('Entity wall-1 not found');
     });
   });
@@ -360,21 +300,9 @@ describe('Entity Property Sync Integration', () => {
 
   describe('History Tracking', () => {
     it('should maintain correct undo/redo counts', async () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
-      const command2 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'thickness',
-        0.3,
-        0.2
-      );
+      const command2 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'thickness', 0.3, 0.2);
 
       await commandStack.execute(command1);
       expect(commandStack.undoStack.length).toBe(1);
@@ -398,13 +326,7 @@ describe('Entity Property Sync Integration', () => {
     });
 
     it('should provide command descriptions in history', async () => {
-      const command1 = new UpdateEntityPropertyCommand(
-        mockStore,
-        'wall-1',
-        'height',
-        3.0,
-        2.8
-      );
+      const command1 = new UpdateEntityPropertyCommand(mockStore, 'wall-1', 'height', 3.0, 2.8);
 
       const command2 = new UpdateEntityPropertyCommand(
         mockStore,

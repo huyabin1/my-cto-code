@@ -19,7 +19,7 @@ describe('Wall Schema', () => {
 
   describe('Field Definitions', () => {
     it('should have name field with correct properties', () => {
-      const nameField = wallSchema.fields.find(f => f.key === 'name');
+      const nameField = wallSchema.fields.find((f) => f.key === 'name');
       expect(nameField).toBeDefined();
       expect(nameField.label).toBe('名称');
       expect(nameField.type).toBe('text');
@@ -30,7 +30,7 @@ describe('Wall Schema', () => {
     });
 
     it('should have material field with correct options', () => {
-      const materialField = wallSchema.fields.find(f => f.key === 'material');
+      const materialField = wallSchema.fields.find((f) => f.key === 'material');
       expect(materialField).toBeDefined();
       expect(materialField.label).toBe('材料');
       expect(materialField.type).toBe('select');
@@ -41,7 +41,7 @@ describe('Wall Schema', () => {
     });
 
     it('should have color field with correct validation', () => {
-      const colorField = wallSchema.fields.find(f => f.key === 'color');
+      const colorField = wallSchema.fields.find((f) => f.key === 'color');
       expect(colorField).toBeDefined();
       expect(colorField.label).toBe('颜色');
       expect(colorField.type).toBe('color');
@@ -50,7 +50,7 @@ describe('Wall Schema', () => {
     });
 
     it('should have height field with number properties', () => {
-      const heightField = wallSchema.fields.find(f => f.key === 'height');
+      const heightField = wallSchema.fields.find((f) => f.key === 'height');
       expect(heightField).toBeDefined();
       expect(heightField.label).toBe('高度');
       expect(heightField.type).toBe('number');
@@ -64,7 +64,7 @@ describe('Wall Schema', () => {
     });
 
     it('should have thickness field with correct constraints', () => {
-      const thicknessField = wallSchema.fields.find(f => f.key === 'thickness');
+      const thicknessField = wallSchema.fields.find((f) => f.key === 'thickness');
       expect(thicknessField).toBeDefined();
       expect(thicknessField.label).toBe('厚度');
       expect(thicknessField.type).toBe('number');
@@ -80,7 +80,7 @@ describe('Wall Schema', () => {
 
   describe('Field Validation Rules', () => {
     describe('Name Field', () => {
-      const field = wallSchema.fields.find(f => f.key === 'name');
+      const field = wallSchema.fields.find((f) => f.key === 'name');
 
       it('should validate required field', () => {
         expect(field.validation.required).toBe(true);
@@ -96,7 +96,7 @@ describe('Wall Schema', () => {
     });
 
     describe('Material Field', () => {
-      const field = wallSchema.fields.find(f => f.key === 'material');
+      const field = wallSchema.fields.find((f) => f.key === 'material');
 
       it('should validate required field', () => {
         expect(field.validation.required).toBe(true);
@@ -104,14 +104,14 @@ describe('Wall Schema', () => {
 
       it('should have valid options', () => {
         const validValues = ['concrete', 'brick', 'drywall', 'wood'];
-        field.options.forEach(option => {
+        field.options.forEach((option) => {
           expect(validValues).toContain(option.value);
         });
       });
     });
 
     describe('Color Field', () => {
-      const field = wallSchema.fields.find(f => f.key === 'color');
+      const field = wallSchema.fields.find((f) => f.key === 'color');
 
       it('should validate required field', () => {
         expect(field.validation.required).toBe(true);
@@ -133,7 +133,7 @@ describe('Wall Schema', () => {
     });
 
     describe('Height Field', () => {
-      const field = wallSchema.fields.find(f => f.key === 'height');
+      const field = wallSchema.fields.find((f) => f.key === 'height');
 
       it('should validate numeric constraints', () => {
         expect(field.validation.min).toBe(0.1);
@@ -142,7 +142,7 @@ describe('Wall Schema', () => {
     });
 
     describe('Thickness Field', () => {
-      const field = wallSchema.fields.find(f => f.key === 'thickness');
+      const field = wallSchema.fields.find((f) => f.key === 'thickness');
 
       it('should validate numeric constraints', () => {
         expect(field.validation.min).toBe(0.05);

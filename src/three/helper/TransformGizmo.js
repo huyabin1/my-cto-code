@@ -7,15 +7,8 @@ const DEFAULT_TRANSLATION_SNAP = 0.5;
 
 export default class TransformGizmo {
   constructor(options) {
-    const {
-      camera,
-      domElement,
-      scene,
-      store,
-      commandStack,
-      sceneGraph,
-      onDragStateChange,
-    } = options;
+    const { camera, domElement, scene, store, commandStack, sceneGraph, onDragStateChange } =
+      options;
 
     if (!camera || !domElement || !scene || !store || !commandStack) {
       throw new Error('TransformGizmo requires camera, domElement, scene, store, and commandStack');
